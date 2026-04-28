@@ -57,8 +57,8 @@ class ProductionConfig(Config):
     DEBUG = False
     TESTING = False
     
-    # Require secure cookies in production
-    SESSION_COOKIE_SECURE = True
+    # Require secure cookies in production (behind proxy with HTTPS)
+    SESSION_COOKIE_SECURE = False  # Set to False when behind reverse proxy
     
     # Stricter security
     PREFERRED_URL_SCHEME = 'https'
