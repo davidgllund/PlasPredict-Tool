@@ -1,4 +1,7 @@
-FROM python:3.11-slim
+# ── Stage 1: build ──────────────────────────────────────────────────────────
+FROM python:3.11-slim AS builder
+
+WORKDIR /build
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -6,29 +9,42 @@ RUN apt-get update && apt-get install -y \
     hmmer \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app
-
 # Copy requirements and install Python dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY app/requirements.txt .
+RUN pip install --prefix=/install --no-cache-dir -r requirements.txt
+ 
+# ── Stage 2: runtime ─────────────────────────────────────────────────────────
+FROM python:3.11-slim
 
-# Copy application files
-COPY app.py .
-COPY plaspredict_model.pkl .
-COPY templates/ templates/
-COPY static/ static/
-COPY files/ files/
-
-# Create non-root user
+# ── Non-root user (UID 1000 required by SciLifeLab Serve) ────────────────────
+ENV USER=appuser
+ENV HOME=/home/$USER
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
 USER appuser
 
-# Expose port
-EXPOSE 5000
+# Copy application files
+COPY --from=builder /install /usr/local
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:5000/').read()" || exit 1
+# Copy application code
+COPY app/ $HOME/app/
 
-# Run the application with gunicorn
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "--timeout", "120", "app:app"]
+# Copy start script into WORKDIR — Serve calls it as ./start-script.sh
+COPY app/start-script.sh $HOME/app/start-script.sh
+
+# Create the data directory that Serve will mount the volume onto
+# Must exist in the image before Serve can bind-mount over it
+RUN mkdir -p $HOME/data \
+    && chmod +x $HOME/app/start-script.sh \
+    && chown -R $USER:$USER $HOME
+
+WORKDIR $HOME/app
+
+# ── Gunicorn / Dash settings ──────────────────────────────────────────────────
+ENV PYTHONUNBUFFERED=1
+# Serve only allows ports 3000-9999; 8000 is used in all Serve examples
+ENV GUNICORN_CMD_ARGS="--bind=0.0.0.0:8000 --workers=2 --timeout=120 --forwarded-allow-ips='*' --access-logfile=-"
+
+USER $USER
+EXPOSE 8000
+
+ENTRYPOINT ["./start-script.sh"]
