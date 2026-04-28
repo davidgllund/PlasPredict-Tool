@@ -1,0 +1,4 @@
+# macsyfinder 2.1.6  (using MacSyLib 1.0.4 )
+# models : TXSScan-1.1.4
+# /home/dlund/.conda/envs/plasmid_project/bin/macsyfinder --db-type ordered_replicon --replicon-topology circular --models-dir macsyfinder_models/ --models TXSScan --sequence-db proteins.faa --out-dir tmp
+# No Loners found

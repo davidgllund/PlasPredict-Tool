@@ -1,0 +1,54 @@
+# hmmsearch :: search profile(s) against a sequence database
+# HMMER 3.2.1 (June 2018); http://hmmer.org/
+# Copyright (C) 2018 Howard Hughes Medical Institute.
+# Freely distributed under the BSD open source license.
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# query HMM file:                  /home/dlund/plasmid_project/macsyfinder_models/TXSScan/profiles/T4SS_t4cp1.hmm
+# target sequence database:        proteins.faa
+# output directed to file:         tmp/hmmer_results/T4SS_t4cp1.search_hmm.out
+# model-specific thresholding:     GA cutoffs
+# number of worker threads:        1
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Query:       t4cp1  [M=110]
+Scores for complete sequences (score includes all domains):
+   --- full sequence ---   --- best 1 domain ---    -#dom-
+    E-value  score  bias    E-value  score  bias    exp  N  Sequence       Description
+    ------- ------ -----    ------- ------ -----   ---- --  --------       -----------
+    7.7e-09   30.2   0.0    1.7e-08   29.1   0.0    1.7  1  AB366440.1_155  # 141111 # 143195 # 1 # ID=1_155;partial=00;s
+
+
+Domain annotation for each sequence (and alignments):
+>> AB366440.1_155  # 141111 # 143195 # 1 # ID=1_155;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc
+   #    score  bias  c-Evalue  i-Evalue hmmfrom  hmm to    alifrom  ali to    envfrom  env to     acc
+ ---   ------ ----- --------- --------- ------- -------    ------- -------    ------- -------    ----
+   1 !   29.1   0.0   7.4e-11   1.7e-08       1     109 [.     210     314 ..     210     315 .. 0.89
+
+  Alignments for each domain:
+  == domain 1  score: 29.1 bits;  conditional E-value: 7.4e-11
+           t4cp1   1 GKtvglv..ipnllkwrgsvivlDpkgelyeatagyr....agrgdkvlvlnpgdeaeshrwnpldyirdrsaeragdlaslanslipaekgggg 89 
+                     GKtv+     + +l++++ ++v+Dpk++ ++  +       +g +  ++ ++p++++ s+++++++   ++     +dl+s++ sl++     g+
+  AB366440.1_155 210 GKTVLQRllSISMLHLGHVIVVIDPKNDAEWRQSLMDeaseLGLP--FYKFHPAQPSSSVCIDVCNAY-TNV----SDLTSRLLSLVSV---PGE 294
+                     8999999887777878888***********999999997666666..********************9.555....7***********9...899 PP
+
+           t4cp1  90 daffkesarqllaalilall 109
+                        f + a++l++ +i  l+
+  AB366440.1_155 295 VNPFVQYAEALVSTVITGLS 314
+                     999***********998776 PP
+
+
+
+Internal pipeline statistics summary:
+-------------------------------------
+Query model(s):                            1  (110 nodes)
+Target sequences:                        234  (57690 residues searched)
+Passed MSV filter:                         6  (0.025641); expected 4.7 (0.02)
+Passed bias filter:                        6  (0.025641); expected 4.7 (0.02)
+Passed Vit filter:                         1  (0.0042735); expected 0.2 (0.001)
+Passed Fwd filter:                         1  (0.0042735); expected 0.0 (1e-05)
+Initial search space (Z):                234  [actual number of targets]
+Domain search space  (domZ):               1  [number of targets reported over threshold]
+# CPU time: 0.00u 0.00s 00:00:00.00 Elapsed: 00:00:00.00
+# Mc/sec: 4873.40
+//
+[ok]

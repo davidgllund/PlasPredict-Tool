@@ -1,0 +1,98 @@
+# hmmsearch :: search profile(s) against a sequence database
+# HMMER 3.2.1 (June 2018); http://hmmer.org/
+# Copyright (C) 2018 Howard Hughes Medical Institute.
+# Freely distributed under the BSD open source license.
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# query HMM file:                  /home/dlund/plasmid_project/macsyfinder_models/TXSScan/profiles/T4SS_virb4.hmm
+# target sequence database:        proteins.faa
+# output directed to file:         tmp/hmmer_results/T4SS_virb4.search_hmm.out
+# model-specific thresholding:     GA cutoffs
+# number of worker threads:        1
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Query:       virb4  [M=943]
+Scores for complete sequences (score includes all domains):
+   --- full sequence ---   --- best 1 domain ---    -#dom-
+    E-value  score  bias    E-value  score  bias    exp  N  Sequence       Description
+    ------- ------ -----    ------- ------ -----   ---- --  --------       -----------
+   7.7e-131  431.9   1.1   8.7e-131  431.7   1.1    1.0  1  AB366440.1_234  # 202402 # 205083 # 1 # ID=1_234;partial=00;s
+    2.9e-13   42.8   0.0    1.2e-06   20.8   0.0    2.1  0  AB366440.1_155  # 141111 # 143195 # 1 # ID=1_155;partial=00;s
+
+
+Domain annotation for each sequence (and alignments):
+>> AB366440.1_234  # 202402 # 205083 # 1 # ID=1_234;partial=00;start_type=ATG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_c
+   #    score  bias  c-Evalue  i-Evalue hmmfrom  hmm to    alifrom  ali to    envfrom  env to     acc
+ ---   ------ ----- --------- --------- ------- -------    ------- -------    ------- -------    ----
+   1 !  431.7   1.1  7.5e-133  8.7e-131      59     836 ..       2     891 ..       1     893 [. 0.86
+
+  Alignments for each domain:
+  == domain 1  score: 431.7 bits;  conditional E-value: 7.5e-133
+           virb4  59 lsallkkkkkkepslskllpyrehvddg.villkdgsllagfklegipfegasdeelnslnkllntllrslg...sgvtlqvhlvrrkvaeyle. 148
+                     +sa+  +k+ ++++l  ++p ++++  +  +ll+ ++l  gf++ ++p+ g  d++++ l++l+++ +++     + +t   +l+ +  + + + 
+  AB366440.1_234   2 RSANVYNKELSRHQLGGFIPVYDQIPGThYFLLDGNRL--GFMFICSPSPGVFDNQQDVLTELFKMDFPADTicqTSLTALPDLILHL-SAWSAv 93 
+                     56788899999**************7774555555555..*****************************9866666677777777777.333335 PP
+
+           virb4 149 ..gefsnpfaaeldrayrerfekggffendlyltlvyrpfr....lrrllakls.skskeaseeleealekledalreletslsqygprllgltf 236
+                       g+++    ++l+ +    ++  ++++++l+  l+  p +    lr++    s s + +++   e +  +++ + ++l ++l ++g  + ++ +
+  AB366440.1_234  94 rgGRME--GHDKLKGDLLTAYQL-DYYDRSLNEPLK--PDHdklmLRDFQVWISfSIPLKSALPSEIEKTRIDALYSDLISKLNTVGLFPHKVGA 183
+                     455555..568888888888887.9**********9..55566664444444447777777777777777777778888888888877777799* PP
+
+           virb4 237 selleflnflln.g...erqpvrv.psplepldeqlads..elifgreei.eirg..dkge.ryarvlsikeyPeetypglldsll........s 312
+                     +++l ++ +ll+ g   ++ + +v  s++ +l+eq+  +  + +++++++ ++++  d++e ry++ ls+ ++Pe ++ g++ +l         +
+  AB366440.1_234 184 ENWLYCMDKLLHpGktsRWSEGHVeASTMRRLNEQINVPgrKYTVTENHFsSTTQsnDISEhRYFKQLSVVKFPEFVNFGCMYELVvnwlngrkT 278
+                     ************88**8899999987799***********8777777999988888888889****************77777775567777668 PP
+
+           virb4 313 ipcefiltqsfrfedqek.akkklnrkikrlkkkve....aadpdaksqlaeleaalddltsgefvlgyyhltvtvfgktleeleeatnevksal 402
+                     i  +f++tq+++f+d+ k +++ ++ k+  +k+ ++     + p++k++ +++++++++l++g   l++y lt+tv+g++  +++ a+ ++ks +
+  AB366440.1_234 279 IFSPFMITQTVHFADPLKlSRENVRYKAITNKQASIptvlTFCPRLKDMDNDYMTITRELEDGARLLHSY-LTFTVMGNSAVDVQSAADQLKSFY 372
+                     88****************555556666666665555***77***********************999888.************************ PP
+
+           virb4 403 snlgfkiaretlaqeeaflsqLP.gng....klrgrtrtisssnlanllPfhnfslgkpggavmllptrsgqpfffnlhdsdlngntlvtGpsGa 492
+                      ++++++a +++   ++f+s+LP  n      + +r   +s++ +a++ P+++ ++g+++ +v+ l++r gq++ +++++++ ++n++v ++sGa
+  AB366440.1_234 373 LESRVNVADDSYIVFPSFVSSLPmCNDpktiLELDRFEVVSNTGAAHMTPIFGPWKGNTDRPVLNLVSREGQLLGLDIFKTSASYNMVVGATSGA 467
+                     ***********************95556689****************************99********************999*********** PP
+
+           virb4 493 GKStllnellaqllk............................ygprvfifDkgrsykkl.vralgGkyitlspgkpiglnPfql.....edtea 553
+                     GKS++++++++++l                              g+++f++D+grsy+++  ++ + ++i+++++ ++ lnPf++          
+  AB366440.1_234 468 GKSFWVAYIINNYLGagprsnnlihyrdtfegfknnsydafdpDGAQIFVVDVGRSYQGIsEQYTNSQFIDFGKKPDFTLNPFAFltdvtV---- 558
+                     ***************999999999999999999999988876666999***********8356779******************7643330.... PP
+
+           virb4 554 d.....................enra.....flkelfallaskpgepltpeerselsdairalyeepeeyrtlsdvlellq....eiderakdla 618
+                                           +  +     ++ ++++++as ++++++++++s++ + i + y+e+++  +  ++  + +    ++d+r+kd++
+  AB366440.1_234 559 GervfdeapvfnddsnnhdddkD--KvaqtiMVLNQLKIMAS-EKGNIDDFQQSVMLQLISEEYNESRKVGRTGSITGFARrcsnHEDKRIKDIG 650
+                     34555666666777766665552..155667***********.**********************99988766666666666667********** PP
+
+           virb4 619 erLkkwtrgGqygwvF.dnesd.sfdladfvvfeltellddpelrtpvllyLfyrieqsm...dggrpkliiiDEawkll...........dnpq 697
+                     ++L +w++gG yg+ F  n  + +fd ++f+v+el+el+++p+l+t+vl+++++  +++m   ++gr+ l+i+DEaw+++           +n++
+  AB366440.1_234 651 DQLGQWCEGGIYGNRFtENLPPiNFD-SRFIVLELEELKGTPHLQTVVLMSIIQAAQHAMfikKDGRRRLFILDEAWEYIrpdnasgssnhSNQF 744
+                     **************9*8999995599.*********************************998557889***********995555544433355 PP
+
+           virb4 698 faefieeglrtaRKyngalifaTQsiedflsspiaraiiensatkilLpqpkaere..dyvegfglteaeieiikslepksraf...likqggei 787
+                     f++f+e  +r++RK n+a i++TQs+ed++ s+++ra+ +ns++ki+++q+k+++e  ++++ f+ t+ae+e +k++++ +raf   l++ ++  
+  AB366440.1_234 745 FSSFLEAAWRRFRKTNCAGICITQSFEDYFTSSVGRALTANSPWKIIMKQEKESIEamKVNNYFSTTDAEYERMKNIRTVKRAFsemLVRFENFQ 839
+                     ********************************************************999************************************ PP
+
+           virb4 788 alfrlsldpeelavlsssp...dnveiieelekegegdwleeylerrkaeka 836
+                     +++rl++d+++  ++ +++    ++++i++     +g+++e ++e++ a k+
+  AB366440.1_234 840 EICRLYVDRKMELCFTTDStdrGKLWEIQSRLDCSYGEAIEILYEQEVASKS 891
+                     *********99999999996555599999999**********9999988765 PP
+
+>> AB366440.1_155  # 141111 # 143195 # 1 # ID=1_155;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc
+   [No individual domains that satisfy reporting thresholds (although complete target did)]
+
+
+
+Internal pipeline statistics summary:
+-------------------------------------
+Query model(s):                            1  (943 nodes)
+Target sequences:                        234  (57690 residues searched)
+Passed MSV filter:                        14  (0.0598291); expected 4.7 (0.02)
+Passed bias filter:                       10  (0.042735); expected 4.7 (0.02)
+Passed Vit filter:                         4  (0.017094); expected 0.2 (0.001)
+Passed Fwd filter:                         2  (0.00854701); expected 0.0 (1e-05)
+Initial search space (Z):                234  [actual number of targets]
+Domain search space  (domZ):               2  [number of targets reported over threshold]
+# CPU time: 0.02u 0.00s 00:00:00.02 Elapsed: 00:00:00.02
+# Mc/sec: 1880.32
+//
+[ok]

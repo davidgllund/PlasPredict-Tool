@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PlasPredict - Online Plasmid Host Range Prediction</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <img src="{{ url_for('static', filename='plaspredict_logo.png') }}" alt="PlasPredict Logo" class="logo"> 
+        </header>
+
+        <main>
+            <form id="predictionForm" class="form-container">
+                <!-- Sequence Input Section -->
+                <section class="form-section">
+                    <h2>1. Plasmid Sequence</h2>
+                    
+                    <div class="radio-group">
+                        <label>
+                            <input type="radio" name="sequence_source" value="text" checked>
+                            Paste Sequence
+                        </label>
+                        <label>
+                            <input type="radio" name="sequence_source" value="file">
+                            Upload File
+                        </label>
+                    </div>
+
+                    <div id="textInputDiv" class="input-div">
+                        <label for="sequenceInput">FASTA Sequence:</label>
+                        <textarea 
+                            id="sequenceInput" 
+                            name="sequence_input" 
+                            placeholder=">sequence_name&#10;ATGATGATG...&#10;&#10;Paste your FASTA sequence here"
+                            rows="8"
+                        ></textarea>
+                        <small>Enter your plasmid sequence in FASTA format</small>
+                    </div>
+
+                    <div id="fileInputDiv" class="input-div" style="display: none;">
+                        <label for="sequenceFile">Select FASTA File:</label>
+                        <input type="file" id="sequenceFile" name="sequence_file" accept=".fna,.fasta,.fa,.txt">
+                        <small>Supported formats: .fna, .fasta, .fa, .txt</small>
+                    </div>
+                </section>
+
+                <!-- Feature Selection Sections -->
+                <section class="form-section">
+                    <h2>2. Plasmid Characteristics</h2>
+
+                    <!-- Incompatibility Types -->
+                    <div class="feature-group">
+                        <label>Incompatibility Type(s):</label>
+                        <div class="checkbox-group" id="inc-type-container">
+                            <!-- Dynamically populated with JavaScript -->
+                        </div> 
+                    </div>
+
+                    <!-- Drug Classes -->
+                    <div class="feature-group">
+                        <label>Antibiotic Class(es):</label>
+                        <div class="checkbox-group">
+                            <label><input type="checkbox" name="drug_class" value="aminocoumarin antibiotic"> Aminocoumarin</label>
+                            <label><input type="checkbox" name="drug_class" value="aminoglycoside antibiotic"> Aminoglycoside</label>
+                            <label><input type="checkbox" name="drug_class" value="antibacterial free fatty acids"> Free fatty acids</label>
+                            <label><input type="checkbox" name="drug_class" value="bicyclomycin-like antibiotic"> Bicyclomycin-like</label>
+                            <label><input type="checkbox" name="drug_class" value="carbapenem"> Carbapenem</label>
+                            <label><input type="checkbox" name="drug_class" value="cephamycin"> Cephamycin</label>
+                            <label><input type="checkbox" name="drug_class" value="diaminopyrimidine antibiotic"> Diaminopyrimidine</label>
+                            <label><input type="checkbox" name="drug_class" value="disinfecting agents and antiseptics"> Disinfectants/antiseptics</label>
+                            <label><input type="checkbox" name="drug_class" value="elfamycin antibiotic"> Elfamycin</label>
+                            <label><input type="checkbox" name="drug_class" value="fluoroquinolone antibiotic"> Fluoroquinolone</label>
+                            <label><input type="checkbox" name="drug_class" value="glycopeptide antibiotic"> Glycopeptide</label>
+                            <label><input type="checkbox" name="drug_class" value="glycylcycline"> Glycylcycline</label>
+                            <label><input type="checkbox" name="drug_class" value="isoniazid-like antibiotic"> Isoniazid-like</label>
+                            <label><input type="checkbox" name="drug_class" value="lincosamide antibiotic"> Lincosamide</label>
+                            <label><input type="checkbox" name="drug_class" value="macrolide antibiotic"> Macrolide</label>
+                            <label><input type="checkbox" name="drug_class" value="monobactam"> Monobactam</label>
+                            <label><input type="checkbox" name="drug_class" value="mupirocin-like antibiotic"> Mupirocin-like</label>
+                            <label><input type="checkbox" name="drug_class" value="nitrofuran antibiotic"> Nitrofuran</label>
+                            <label><input type="checkbox" name="drug_class" value="orthosomycin antibiotic"> Orthosomycin</label>
+                            <label><input type="checkbox" name="drug_class" value="oxazolidinone antibiotic"> Oxazolidinone</label>
+                            <label><input type="checkbox" name="drug_class" value="penam"> Penam</label>
+                            <label><input type="checkbox" name="drug_class" value="penem"> Penem</label>
+                            <label><input type="checkbox" name="drug_class" value="peptide antibiotic"> Peptide</label>
+                            <label><input type="checkbox" name="drug_class" value="phenicol antibiotic"> Phenicol</label>
+                            <label><input type="checkbox" name="drug_class" value="phosphonic acid antibiotic"> Phosphonic acid</label>
+                            <label><input type="checkbox" name="drug_class" value="pleuromutilin antibiotic"> Pleuromutilin</label>
+                            <label><input type="checkbox" name="drug_class" value="polyamine antibiotic"> Polyamine</label>
+                            <label><input type="checkbox" name="drug_class" value="pyrazine antibiotic"> Pyrazine</label>
+                            <label><input type="checkbox" name="drug_class" value="rifamycin antibiotic"> Rifamycin</label>
+                            <label><input type="checkbox" name="drug_class" value="salicylic acid antibiotic"> Salicylic acid</label>
+                            <label><input type="checkbox" name="drug_class" value="streptogramin antibiotic"> Streptogramin</label>
+                            <label><input type="checkbox" name="drug_class" value="streptogramin A antibiotic"> Streptogramin A</label>
+                            <label><input type="checkbox" name="drug_class" value="streptogramin B antibiotic"> Streptogramin B</label>
+                            <label><input type="checkbox" name="drug_class" value="sulfonamide antibiotic"> Sulfonamide</label>
+                            <label><input type="checkbox" name="drug_class" value="tetracycline antibiotic"> Tetracycline</label>
+                            <label><input type="checkbox" name="drug_class" value="thioamide antibiotic"> Thioamide</label>
+                        </div> 
+                    </div>
+
+                    <!-- Resistance Mechanisms -->
+                    <div class="feature-group">
+                        <label>Antibiotic Resistance Mechanism(s):</label>
+                        <div class="checkbox-group">
+                            <label><input type="checkbox" name="resistance_mechanism" value="antibiotic efflux"> Efflux</label>
+                            <label><input type="checkbox" name="resistance_mechanism" value="antibiotic inactivation"> Inactivation</label>
+                            <label><input type="checkbox" name="resistance_mechanism" value="antibiotic target replacement"> Target Replacement</label>
+                            <label><input type="checkbox" name="resistance_mechanism" value="antibiotic target protection"> Target Protection</label>
+                            <label><input type="checkbox" name="resistance_mechanism" value="antibiotic target alteration"> Target Modification</label>
+                            <label><input type="checkbox" name="resistance_mechanism" value="reduced permeability to antibiotic"> Reduced Uptake</label>
+                        </div> 
+                    </div>
+
+                    <!-- Isolation Sources -->
+                    <div class="feature-group">
+                        <label>Isolation Source:</label>
+                        <div class="checkbox-group">
+                            <label><input type="checkbox" name="isolation_source" value="Aquatic animal"> Aquatic animal</label>
+                            <label><input type="checkbox" name="isolation_source" value="Clinical"> Clinical</label>
+                            <label><input type="checkbox" name="isolation_source" value="Domestic animal"> Domestic animal</label>
+                            <label><input type="checkbox" name="isolation_source" value="Fungus"> Fungus</label>
+                            <label><input type="checkbox" name="isolation_source" value="Human"> Human</label>
+                            <label><input type="checkbox" name="isolation_source" value="Insect"> Insect</label>
+                            <label><input type="checkbox" name="isolation_source" value="Plant"> Plant</label>
+                            <label><input type="checkbox" name="isolation_source" value="Soil"> Soil</label>
+                            <label><input type="checkbox" name="isolation_source" value="Wastewater"> Wastewater</label>
+                            <label><input type="checkbox" name="isolation_source" value="Water"> Water</label>
+                            <label><input type="checkbox" name="isolation_source" value="Wild animal"> Wild animal</label>
+                        </div> 
+                    </div>
+                </section>
+
+                <!-- Submit Button -->
+                <section class="form-section">
+                    <button type="submit" class="btn-submit" id="submitBtn">
+                        <span>Predict Host Range</span>
+                    </button>
+                    <div id="loadingSpinner" class="loading-spinner" style="display: none;">
+                        <div class="spinner"></div>
+                        <p>Running prediction...</p>
+                    </div>
+                </section>
+            </form>
+
+            <!-- Results Section -->
+            <section id="resultsSection" class="results-section" style="display: none;">
+                <h2>Results</h2>
+                
+                <div class="results-container">
+                    <!-- Sequence Info -->
+                    <div class="result-card">
+                        <h3>Sequence Information</h3>
+                        <p><strong>Sequence ID:</strong> <span id="resultSeqId"></span></p>
+                        <p><strong>Sequence Length:</strong> <span id="resultSeqLength"></span> bp</p>
+                    </div>
+
+                    <!-- Conjugation Systems -->
+                    <div class="result-card" id="conjugationCard" style="display: none;">
+                        <h3>Detected Conjugative Elements</h3>
+                        <p id="conjugationSystems"></p>
+                    </div>
+
+                    <!-- Primary Prediction -->
+                    <div class="result-card primary-prediction">
+                        <h3>Prediction</h3>
+                        <div class="prediction-result">
+                            <p class="top-prediction" id="topPrediction"></p>
+                            <p class="confidence">Score: <span id="topProbability"></span></p>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Predictions -->
+                    <div class="result-card">
+                        <h3>Prediction Scores</h3>
+                        <div id="predictionsChart" class="predictions-chart"></div>
+                    </div>
+
+                    <!-- Legend -->
+                    <div class="result-card info-card">
+                        <h3>Host Range Categories</h3>
+                        <ul>
+                            <li><strong>≤ Species:</strong> Plasmid restricted to specific species</li>
+                            <li><strong>Genus/Family:</strong> Plasmid spans genus or family level</li>
+                            <li><strong>Order/Class:</strong> Plasmid spans order or class level</li>
+                            <li><strong>≥ Phylum:</strong> Plasmid can proliferate across phyla</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <button type="button" class="btn-new-prediction" id="newPredictionBtn">
+                    New Prediction
+                </button>
+            </section>
+
+            <!-- Error Section -->
+            <div id="errorSection" class="error-section" style="display: none;">
+                <h3>⚠️ Error</h3>
+                <p id="errorMessage"></p>
+                <button type="button" class="btn-close-error" id="closeErrorBtn">Dismiss</button>
+            </div>
+        </main>
+
+        <footer>
+            <p>Chalmers University of Technology, Göteborg, Sweden • Erasmus University Medical Centre, Rotterdam, The Netherlands</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

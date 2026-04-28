@@ -1,0 +1,54 @@
+# hmmsearch :: search profile(s) against a sequence database
+# HMMER 3.2.1 (June 2018); http://hmmer.org/
+# Copyright (C) 2018 Howard Hughes Medical Institute.
+# Freely distributed under the BSD open source license.
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# query HMM file:                  /home/dlund/plasmid_project/macsyfinder_models/TXSScan/profiles/Archaeal-T4P_arCOG00589.hmm
+# target sequence database:        proteins.faa
+# output directed to file:         tmp/hmmer_results/Archaeal-T4P_arCOG00589.search_hmm.out
+# model-specific thresholding:     GA cutoffs
+# number of worker threads:        1
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Query:       arCOG00589  [M=219]
+Scores for complete sequences (score includes all domains):
+   --- full sequence ---   --- best 1 domain ---    -#dom-
+    E-value  score  bias    E-value  score  bias    exp  N  Sequence     Description
+    ------- ------ -----    ------- ------ -----   ---- --  --------     -----------
+    1.1e-10   35.6   0.0    2.7e-10   34.2   0.0    1.7  1  AB366440.1_1  # 41 # 1294 # 1 # ID=1_1;partial=00;start_type=
+
+
+Domain annotation for each sequence (and alignments):
+>> AB366440.1_1  # 41 # 1294 # 1 # ID=1_1;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.43
+   #    score  bias  c-Evalue  i-Evalue hmmfrom  hmm to    alifrom  ali to    envfrom  env to     acc
+ ---   ------ ----- --------- --------- ------- -------    ------- -------    ------- -------    ----
+   1 !   34.2   0.0   1.2e-12   2.7e-10       2     150 ..     118     303 ..     117     380 .. 0.69
+
+  Alignments for each domain:
+  == domain 1  score: 34.2 bits;  conditional E-value: 1.2e-12
+    arCOG00589   2 avtsgKGGtGKTtiavnlaaalsl...kgkrvllvDgDlrnasltlllgvsakn...itledvlag..............aadltevvystp..... 73 
+                   +  + KGGtGK+t++  la+a +l    + r+ll+++D + +  + +++  a++    t  d + g                + ++++  +p     
+  AB366440.1_1 118 VTQNHKGGTGKSTTSGVLAVAAALdlhLNARILLIEWDPQGSIGSGMIQSVAEDdvfLTAIDAILGvyeedsdyrkyldlGYSEEQIIEGMPfsthl 214
+                   44556*********9777777666669***********88877777777777756664444444444444333333333333334444444455558 PP
+
+    arCOG00589  74 ntlsvvps...gasledmrkad........psrlsrlleelnr.kfdvviiDtpagltlknvlalasadelilVatpenlsvidalkvl 150
+                    +l+v+ +   +a  +d +  +        + r+++++  + + k+d++iiDtp+  +  +  a ++ad +++ ++p++++ ++++ + 
+  AB366440.1_1 215 PNLDVITAfptDARFKDKYWQCsreertelLLRFKEVILPVLKsKYDLIIIDTPPEDSPITWAADEAADGILVAVSPREYDYASTTDFM 303
+                   88888877666655555544446888766766775555444336*************99999***************999886655443 PP
+
+
+
+Internal pipeline statistics summary:
+-------------------------------------
+Query model(s):                            1  (219 nodes)
+Target sequences:                        234  (57690 residues searched)
+Passed MSV filter:                         9  (0.0384615); expected 4.7 (0.02)
+Passed bias filter:                        9  (0.0384615); expected 4.7 (0.02)
+Passed Vit filter:                         2  (0.00854701); expected 0.2 (0.001)
+Passed Fwd filter:                         1  (0.0042735); expected 0.0 (1e-05)
+Initial search space (Z):                234  [actual number of targets]
+Domain search space  (domZ):               1  [number of targets reported over threshold]
+# CPU time: 0.00u 0.00s 00:00:00.00 Elapsed: 00:00:00.00
+# Mc/sec: 2830.68
+//
+[ok]

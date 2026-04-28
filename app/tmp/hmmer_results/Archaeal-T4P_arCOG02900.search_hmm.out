@@ -1,0 +1,54 @@
+# hmmsearch :: search profile(s) against a sequence database
+# HMMER 3.2.1 (June 2018); http://hmmer.org/
+# Copyright (C) 2018 Howard Hughes Medical Institute.
+# Freely distributed under the BSD open source license.
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# query HMM file:                  /home/dlund/plasmid_project/macsyfinder_models/TXSScan/profiles/Archaeal-T4P_arCOG02900.hmm
+# target sequence database:        proteins.faa
+# output directed to file:         tmp/hmmer_results/Archaeal-T4P_arCOG02900.search_hmm.out
+# model-specific thresholding:     GA cutoffs
+# number of worker threads:        1
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Query:       arCOG02900  [M=141]
+Scores for complete sequences (score includes all domains):
+   --- full sequence ---   --- best 1 domain ---    -#dom-
+    E-value  score  bias    E-value  score  bias    exp  N  Sequence      Description
+    ------- ------ -----    ------- ------ -----   ---- --  --------      -----------
+      6e-10   33.3   0.1    1.3e-09   32.2   0.1    1.5  1  AB366440.1_30  # 32822 # 34834 # 1 # ID=1_30;partial=00;start
+
+
+Domain annotation for each sequence (and alignments):
+>> AB366440.1_30  # 32822 # 34834 # 1 # ID=1_30;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_con
+   #    score  bias  c-Evalue  i-Evalue hmmfrom  hmm to    alifrom  ali to    envfrom  env to     acc
+ ---   ------ ----- --------- --------- ------- -------    ------- -------    ------- -------    ----
+   1 !   32.2   0.1   5.4e-12   1.3e-09       1     140 [.     502     634 ..     502     635 .. 0.76
+
+  Alignments for each domain:
+  == domain 1  score: 32.2 bits;  conditional E-value: 5.4e-12
+     arCOG02900   1 lavlDrSgSmyvsdgrkietakeavlvllkslag...dedtvrvidFsad.arvnipgkrleadssticevlaslkvs...gltvlesAlenafdy 89 
+                    ++v D SgSm+   + ++ +a +  l+l+ ++++         ++ F ++  +v++ +++      +++e+l++ + +    +t+++sAl+ a+++
+  AB366440.1_30 502 VIVRDISGSMS--LEHRYIHAIKTDLALTLAIEAiskMHVANVIYPFVDKdFEVIKTFDE------NAEEKLSKFSLGckgNNTPTGSALNAALEL 589
+                    6899*******..33345566666666555555332155555566**9888*******99......55666666554444499************* PP
+
+     arCOG02900  90 lskqtplalnrnillvtDgrptdtikaeedriielmakmrdmqihvvvvsl 140
+                    l ++  +  +++++l+tDg pt+        i+++ + +++++i++  v++
+  AB366440.1_30 590 LLES--QFDRKIVFLITDGYPTESA----YTINDVFSVAESNGIEIAGVGI 634
+                    *999..99*************8774....4799999999999999988887 PP
+
+
+
+Internal pipeline statistics summary:
+-------------------------------------
+Query model(s):                            1  (141 nodes)
+Target sequences:                        234  (57690 residues searched)
+Passed MSV filter:                         6  (0.025641); expected 4.7 (0.02)
+Passed bias filter:                        3  (0.0128205); expected 4.7 (0.02)
+Passed Vit filter:                         1  (0.0042735); expected 0.2 (0.001)
+Passed Fwd filter:                         1  (0.0042735); expected 0.0 (1e-05)
+Initial search space (Z):                234  [actual number of targets]
+Domain search space  (domZ):               1  [number of targets reported over threshold]
+# CPU time: 0.00u 0.00s 00:00:00.00 Elapsed: 00:00:00.00
+# Mc/sec: 4542.66
+//
+[ok]
