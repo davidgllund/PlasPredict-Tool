@@ -28,8 +28,8 @@ class Config:
     ALLOWED_EXTENSIONS = {'fna', 'fasta', 'fa', 'txt'}
     
     # Model paths
-    MODEL_PATH = PROJECT_ROOT / 'plaspredict_model.pkl'
-    HMM_PATH = PROJECT_ROOT / 'files' / 'conjscan_models'
+    MODEL_PATH = PROJECT_ROOT / 'models' / 'plaspredict_model.pkl'
+    HMM_PATH = PROJECT_ROOT / 'models' / 'conjscan_models'
     
     # External tools
     PRODIGAL_BINARY = 'prodigal'
