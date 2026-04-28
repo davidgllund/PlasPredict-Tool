@@ -43,9 +43,9 @@ WORKDIR $HOME/app
 # ── Gunicorn / Dash settings ──────────────────────────────────────────────────
 ENV PYTHONUNBUFFERED=1
 # Serve only allows ports 3000-9999; 8000 is used in all Serve examples
-ENV GUNICORN_CMD_ARGS="--bind=0.0.0.0:8000 --workers=2 --timeout=120 --forwarded-allow-ips='*' --access-logfile=-"
+ENV GUNICORN_CMD_ARGS="--bind=0.0.0.0:5000 --workers=2 --timeout=120 --forwarded-allow-ips='*' --access-logfile=-"
 
 USER $USER
-EXPOSE 8000
+EXPOSE 5000
 
 ENTRYPOINT ["./start-script.sh"]
