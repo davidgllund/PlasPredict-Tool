@@ -19,8 +19,7 @@ FROM python:3.11-slim
 # ── Non-root user (UID 1000 required by SciLifeLab Serve) ────────────────────
 ENV USER=appuser
 ENV HOME=/home/$USER
-RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
-USER appuser
+RUN useradd -m -u 1000 appuser
 
 # Copy application files
 COPY --from=builder /install /usr/local
@@ -36,6 +35,8 @@ COPY app/start-script.sh $HOME/app/start-script.sh
 RUN mkdir -p $HOME/data \
     && chmod +x $HOME/app/start-script.sh \
     && chown -R $USER:$USER $HOME
+
+USER appuser
 
 WORKDIR $HOME/app
 
