@@ -38,14 +38,14 @@ The workflow file (`.github/workflows/docker-build-publish.yml`) will:
 #### On `push` to `main` branch:
 - Build the Docker image
 - Push to DockerHub with the `latest` tag and commit SHA tag
-- Example tags: `davidgllund/plaspredict:latest`, `davidgllund/plaspredict:abc1234`
+- Example tags: `davidgllund/plaspart:latest`, `davidgllund/plaspart:abc1234`
 
 #### On `push` of version tags (e.g., `v1.0.0`):
 - Build and push with semantic version tags
 - Example tags:
-  - `davidgllund/plaspredict:1.0.0`
-  - `davidgllund/plaspredict:1.0`
-  - `davidgllund/plaspredict:latest` (automatic with semver pattern)
+  - `davidgllund/plaspart:1.0.0`
+  - `davidgllund/plaspart:1.0`
+  - `davidgllund/plaspart:latest` (automatic with semver pattern)
 
 #### On Pull Requests:
 - Builds the image but does **not** push to DockerHub
@@ -55,18 +55,18 @@ The workflow file (`.github/workflows/docker-build-publish.yml`) will:
 
 The images will be available at:
 ```
-docker.io/your-dockerhub-username/plaspredict:tag
+docker.io/your-dockerhub-username/plaspart:tag
 ```
 
 Examples:
 ```bash
-docker pull docker.io/your-username/plaspredict:latest
-docker pull docker.io/your-username/plaspredict:v1.0.0
+docker pull docker.io/your-username/plaspart:latest
+docker pull docker.io/your-username/plaspart:v1.0.0
 ```
 
 Or without the registry prefix:
 ```bash
-docker pull your-username/plaspredict:latest
+docker pull your-username/plaspart:latest
 ```
 
 ## Testing the Workflow
@@ -111,7 +111,7 @@ Modify the `on:` section to trigger on different events:
 
 ### Build fails
 - Check the workflow logs in GitHub Actions
-- Test building locally: `docker build -f app/Dockerfile -t plaspredict:test .`
+- Test building locally: `docker build -f app/Dockerfile -t plaspart:test .`
 - Ensure all required files are in the correct paths
 
 ### Image not appearing on DockerHub

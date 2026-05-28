@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PlasPredict - Online Plasmid Host Range Prediction</title>
+    <title>PlasPart - Online Plasmid Host Range Prediction</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <div class="container">
         <header>
-            <img src="{{ url_for('static', filename='plaspredict_logo.png') }}" alt="PlasPredict Logo" class="logo"> 
+            <img src="{{ url_for('static', filename='plaspredict_logo.png') }}" alt="PlasPart Logo" class="logo"> 
         </header>
 
         <main>
@@ -49,71 +49,10 @@
 
                 <!-- Feature Selection Sections -->
                 <section class="form-section">
-                    <h2>2. Plasmid Characteristics</h2>
-
-                    <!-- Incompatibility Types -->
-                    <div class="feature-group">
-                        <label>Incompatibility Type(s):</label>
-                        <div class="checkbox-group" id="inc-type-container">
-                            <!-- Dynamically populated with JavaScript -->
-                        </div> 
-                    </div>
-
-                    <!-- Drug Classes -->
-                    <div class="feature-group">
-                        <label>Antibiotic Class(es):</label>
-                        <div class="checkbox-group">
-                            <label><input type="checkbox" name="drug_class" value="aminocoumarin antibiotic"> Aminocoumarin</label>
-                            <label><input type="checkbox" name="drug_class" value="aminoglycoside antibiotic"> Aminoglycoside</label>
-                            <label><input type="checkbox" name="drug_class" value="antibacterial free fatty acids"> Free fatty acids</label>
-                            <label><input type="checkbox" name="drug_class" value="bicyclomycin-like antibiotic"> Bicyclomycin-like</label>
-                            <label><input type="checkbox" name="drug_class" value="carbapenem"> Carbapenem</label>
-                            <label><input type="checkbox" name="drug_class" value="cephamycin"> Cephamycin</label>
-                            <label><input type="checkbox" name="drug_class" value="diaminopyrimidine antibiotic"> Diaminopyrimidine</label>
-                            <label><input type="checkbox" name="drug_class" value="disinfecting agents and antiseptics"> Disinfectants/antiseptics</label>
-                            <label><input type="checkbox" name="drug_class" value="elfamycin antibiotic"> Elfamycin</label>
-                            <label><input type="checkbox" name="drug_class" value="fluoroquinolone antibiotic"> Fluoroquinolone</label>
-                            <label><input type="checkbox" name="drug_class" value="glycopeptide antibiotic"> Glycopeptide</label>
-                            <label><input type="checkbox" name="drug_class" value="glycylcycline"> Glycylcycline</label>
-                            <label><input type="checkbox" name="drug_class" value="isoniazid-like antibiotic"> Isoniazid-like</label>
-                            <label><input type="checkbox" name="drug_class" value="lincosamide antibiotic"> Lincosamide</label>
-                            <label><input type="checkbox" name="drug_class" value="macrolide antibiotic"> Macrolide</label>
-                            <label><input type="checkbox" name="drug_class" value="monobactam"> Monobactam</label>
-                            <label><input type="checkbox" name="drug_class" value="mupirocin-like antibiotic"> Mupirocin-like</label>
-                            <label><input type="checkbox" name="drug_class" value="nitrofuran antibiotic"> Nitrofuran</label>
-                            <label><input type="checkbox" name="drug_class" value="orthosomycin antibiotic"> Orthosomycin</label>
-                            <label><input type="checkbox" name="drug_class" value="oxazolidinone antibiotic"> Oxazolidinone</label>
-                            <label><input type="checkbox" name="drug_class" value="penam"> Penam</label>
-                            <label><input type="checkbox" name="drug_class" value="penem"> Penem</label>
-                            <label><input type="checkbox" name="drug_class" value="peptide antibiotic"> Peptide</label>
-                            <label><input type="checkbox" name="drug_class" value="phenicol antibiotic"> Phenicol</label>
-                            <label><input type="checkbox" name="drug_class" value="phosphonic acid antibiotic"> Phosphonic acid</label>
-                            <label><input type="checkbox" name="drug_class" value="pleuromutilin antibiotic"> Pleuromutilin</label>
-                            <label><input type="checkbox" name="drug_class" value="polyamine antibiotic"> Polyamine</label>
-                            <label><input type="checkbox" name="drug_class" value="pyrazine antibiotic"> Pyrazine</label>
-                            <label><input type="checkbox" name="drug_class" value="rifamycin antibiotic"> Rifamycin</label>
-                            <label><input type="checkbox" name="drug_class" value="salicylic acid antibiotic"> Salicylic acid</label>
-                            <label><input type="checkbox" name="drug_class" value="streptogramin antibiotic"> Streptogramin</label>
-                            <label><input type="checkbox" name="drug_class" value="streptogramin A antibiotic"> Streptogramin A</label>
-                            <label><input type="checkbox" name="drug_class" value="streptogramin B antibiotic"> Streptogramin B</label>
-                            <label><input type="checkbox" name="drug_class" value="sulfonamide antibiotic"> Sulfonamide</label>
-                            <label><input type="checkbox" name="drug_class" value="tetracycline antibiotic"> Tetracycline</label>
-                            <label><input type="checkbox" name="drug_class" value="thioamide antibiotic"> Thioamide</label>
-                        </div> 
-                    </div>
-
-                    <!-- Resistance Mechanisms -->
-                    <div class="feature-group">
-                        <label>Antibiotic Resistance Mechanism(s):</label>
-                        <div class="checkbox-group">
-                            <label><input type="checkbox" name="resistance_mechanism" value="antibiotic efflux"> Efflux</label>
-                            <label><input type="checkbox" name="resistance_mechanism" value="antibiotic inactivation"> Inactivation</label>
-                            <label><input type="checkbox" name="resistance_mechanism" value="antibiotic target replacement"> Target Replacement</label>
-                            <label><input type="checkbox" name="resistance_mechanism" value="antibiotic target protection"> Target Protection</label>
-                            <label><input type="checkbox" name="resistance_mechanism" value="antibiotic target alteration"> Target Modification</label>
-                            <label><input type="checkbox" name="resistance_mechanism" value="reduced permeability to antibiotic"> Reduced Uptake</label>
-                        </div> 
-                    </div>
+                    <h2>2. Isolation Source</h2>
+                    <p style="font-size: 0.95em; color: #666; margin-bottom: 1rem;">
+                        Plasmid features (incompatibility types, antibiotic resistance, and conjugation systems) are automatically detected from your sequence.
+                    </p>
 
                     <!-- Isolation Sources -->
                     <div class="feature-group">
@@ -158,10 +97,10 @@
                         <p><strong>Sequence Length:</strong> <span id="resultSeqLength"></span> bp</p>
                     </div>
 
-                    <!-- Conjugation Systems -->
-                    <div class="result-card" id="conjugationCard" style="display: none;">
-                        <h3>Detected Conjugative Elements</h3>
-                        <p id="conjugationSystems"></p>
+                    <!-- Detected Features -->
+                    <div class="result-card" id="detectedFeaturesCard" style="display: none;">
+                        <h3>Detected Features</h3>
+                        <div id="detectedFeatures"></div>
                     </div>
 
                     <!-- Primary Prediction -->

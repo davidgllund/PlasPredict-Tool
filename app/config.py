@@ -31,9 +31,15 @@ class Config:
     MODEL_PATH = PROJECT_ROOT / 'models' / 'plaspredict_model.pkl'
     HMM_PATH = PROJECT_ROOT / 'models' / 'conjscan_models'
     
-    # External tools
+    # External tools paths and databases
+    PLASMIDFINDER_DB_PATH = os.environ.get(
+        'PLASMIDFINDER_DB_PATH',
+        os.path.expanduser('~/.conda/envs/plaspart/share/plasmidfinder-2.1.6/database')
+    )
+    
     PRODIGAL_BINARY = 'prodigal'
     HMMSEARCH_BINARY = 'hmmsearch'
+    RGI_BINARY = 'rgi'
     
     # Performance
     PREDICTION_TIMEOUT = 120  # seconds

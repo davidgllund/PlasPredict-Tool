@@ -6,6 +6,7 @@ import os
 import sys
 import tempfile
 import logging
+import json
 from pathlib import Path
 from flask import Flask, render_template, request, jsonify
 from werkzeug.utils import secure_filename
@@ -94,14 +95,16 @@ def annotate_conjugation_system(filepath, models):
         proteins = tmp / "proteins.faa"
         
         try:
-            # Gene prediction with prodigal
-            subprocess.run(
+            result = subprocess.run(
                 ["prodigal", "-i", filepath, "-a", str(proteins), "-p", "meta"],
-                check=True,
-                capture_output=True
+                capture_output=True,
+                text=True
             )
             
-            # Search for conjugation markers
+            if result.returncode != 0:
+                logger.warning(f"Prodigal failed: {result.stderr}")
+                return conjugation_system
+            
             for hmm in models:
                 hits = subprocess.run(
                     f'hmmsearch -E 0.0000000001 "{hmm}" "{proteins}"',
@@ -110,40 +113,192 @@ def annotate_conjugation_system(filepath, models):
                     text=True
                 )
                 
-                if "[No hits detected that satisfy reporting thresholds]" not in hits.stdout:
+                if hits.returncode == 0 and "[No hits detected that satisfy reporting thresholds]" not in hits.stdout:
                     element = hmm.split('/')[-1].split('.')[0].split('_')[0]
                     if element not in conjugation_system:
                         conjugation_system.append(element)
         
         except Exception as e:
-            print(f"Warning: Could not run conjugation annotation: {e}")
+            logger.warning(f"Warning: Could not run conjugation annotation: {e}")
     
     return conjugation_system
 
 
-def predict_host_range(fasta_content, inc_types, drug_classes, 
-                       resistance_mechanisms, isolation_sources):
+def run_plasmidfinder(fasta_path, output_dir, db_path, executable="plasmidfinder.py"):
+    """Run plasmidfinder to identify plasmid incompatibility types"""
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    db_path = Path(db_path).expanduser().resolve()
+
+    cmd = [
+        executable,
+        "-i", str(fasta_path),
+        "-o", str(output_dir),
+        "-p", str(db_path)
+    ]
+
+    result = subprocess.run(cmd, capture_output=True, text=True)
+
+    if result.returncode != 0:
+        logger.warning(f"Plasmidfinder failed: {result.stderr}")
+        return None
+
+    return output_dir
+
+
+def parse_plasmidfinder_json(json_path):
+    """Parse plasmidfinder JSON output to extract incompatibility types"""
+    try:
+        with open(json_path) as f:
+            data = json.load(f)
+
+        root = data["plasmidfinder"]["results"]
+        rows = []
+ 
+        for category, subdict in root.items():
+            if not isinstance(subdict, dict):
+                continue
+ 
+            for subgroup, hits in subdict.items():
+                if hits == "No hit found":
+                    continue
+ 
+                if not isinstance(hits, dict):
+                    continue 
+
+                for hit_id, hit in hits.items():
+                    if not isinstance(hit, dict):
+                        continue
+
+                    rows.append({
+                        "category": category,
+                        "subgroup": subgroup,
+                        "plasmid": hit.get("plasmid"),
+                        "identity": hit.get("identity"),
+                        "coverage": hit.get("coverage"),
+                        "contig": hit.get("contig_name"),
+                        "positions_in_contig": hit.get("positions_in_contig"),
+                        "reference_accession": hit.get("accession"),
+                        "template_length": hit.get("template_length"),
+                        "hsp_length": hit.get("HSP_length"),
+                        "note": hit.get("note"),
+                        "hit_id": hit.get("hit_id")
+                    })
+
+        return pd.DataFrame(rows)
+    except Exception as e:
+        logger.warning(f"Could not parse plasmidfinder output: {e}")
+        return pd.DataFrame()
+
+
+def run_rgi(fasta_path, output_prefix, executable="rgi"):
+    """Run RGI to identify antibiotic resistance genes"""
+    fasta_path = Path(fasta_path).resolve()
+    output_prefix = Path(output_prefix).resolve()
+    output_prefix.parent.mkdir(parents=True, exist_ok=True)
+
+    cmd = [
+        executable,
+        "main",
+        "--input_sequence", str(fasta_path),
+        "--output_file", str(output_prefix),
+        "--input_type", "contig",
+        "--local"
+    ]
+
+    result = subprocess.run(cmd, capture_output=True, text=True)
+
+    if result.returncode != 0:
+        logger.warning(f"RGI failed: {result.stderr}")
+        return None
+
+    return output_prefix
+
+
+def parse_rgi_output(file_path: str) -> pd.DataFrame:
+    """Parse and filter RGI output to remove overlapping hits"""
+    try:
+        df = pd.read_csv(file_path, sep="\t")
+
+        if df.empty:
+            return df
+
+        df["start_pos"] = df[["Start", "Stop"]].min(axis=1)
+        df["end_pos"] = df[["Start", "Stop"]].max(axis=1)
+
+        tier_mapping = {"Perfect": 3, "Strict": 2, "Loose": 1}
+        df["tier_score"] = df["Cut_Off"].map(tier_mapping).fillna(0)
+
+        df = df.sort_values(
+            by=["Contig", "start_pos", "tier_score", "Best_Hit_Bitscore", "Best_Identities"],
+            ascending=[True, True, False, False, False],
+        ).reset_index(drop=True)
+
+        keep_indices = []
+
+        for contig, group in df.groupby("Contig"):
+            current_end = -1
+            current_tier = -1
+            current_bitscore = -1
+            current_idx = None
+
+            for idx, row in group.iterrows():
+                if row["start_pos"] <= current_end:
+                    is_better_tier = row["tier_score"] > current_tier
+                    is_equal_tier_better_score = (
+                        row["tier_score"] == current_tier
+                    ) and (row["Best_Hit_Bitscore"] > current_bitscore)
+
+                    if is_better_tier or is_equal_tier_better_score:
+                        if current_idx in keep_indices:
+                            keep_indices.remove(current_idx)
+
+                        current_idx = idx
+                        current_end = max(current_end, row["end_pos"])
+                        current_tier = row["tier_score"]
+                        current_bitscore = row["Best_Hit_Bitscore"]
+                        keep_indices.append(idx)
+                    else:
+                        continue
+                else:
+                    current_idx = idx
+                    current_end = row["end_pos"]
+                    current_tier = row["tier_score"]
+                    current_bitscore = row["Best_Hit_Bitscore"]
+                    keep_indices.append(idx)
+ 
+        filtered_df = df.loc[keep_indices].copy()
+ 
+        filtered_df = filtered_df.drop(
+            columns=["start_pos", "end_pos", "tier_score"]
+        )
+
+        return filtered_df.sort_values(by=["Contig", "Start"]).reset_index(
+            drop=True
+        )
+    except Exception as e:
+        logger.warning(f"Could not parse RGI output: {e}")
+        return pd.DataFrame()
+
+
+def predict_host_range(fasta_content, isolation_sources):
     """
     Make host range prediction for a plasmid sequence
     
     Args:
         fasta_content: FASTA sequence as string or file path
-        inc_types: List of incompatibility types selected
-        drug_classes: List of drug classes selected
-        resistance_mechanisms: List of resistance mechanisms selected
-        isolation_sources: List of isolation sources selected
+        isolation_sources: List of isolation sources selected (exactly one)
     
     Returns:
         Dictionary with prediction results
     """
     try:
-        # Parse FASTA content
         if os.path.isfile(fasta_content):
             plasmid_sequence = SeqIO.to_dict(
                 SeqIO.parse(fasta_content, 'fasta')
             )
         else:
-            # Create temporary FASTA file from string
             with tempfile.NamedTemporaryFile(mode='w', suffix='.fna', delete=False) as f:
                 f.write(fasta_content)
                 temp_fasta = f.name
@@ -153,16 +308,14 @@ def predict_host_range(fasta_content, inc_types, drug_classes,
             os.unlink(temp_fasta)
         
         if not plasmid_sequence:
-            return {'error': 'No valid sequences found in FASTA file'}
+            return {'error': 'No valid sequences found in FASTA file', 'success': False}
         
-        # Create feature dataframe
         df = pd.DataFrame(
             0,
             index=plasmid_sequence.keys(),
             columns=model.get_booster().feature_names
         )
         
-        # Calculate k-mer distributions
         all_kmers = generate_possible_kmers(3)
         kmer_distributions = calc_kmer_distributions(plasmid_sequence, 3, all_kmers)
         kmer_df = pd.DataFrame(
@@ -171,28 +324,86 @@ def predict_host_range(fasta_content, inc_types, drug_classes,
             columns=all_kmers
         )
         
-        # Add k-mer features
         kmer_cols = list(set(kmer_df.columns) & set(df.columns))
         df[kmer_cols] = kmer_df[kmer_cols]
         
-        # Add plasmid size
         first_seq_id = list(plasmid_sequence.keys())[0]
         df.loc[first_seq_id, 'size'] = len(plasmid_sequence[first_seq_id].seq)
         
-        # Annotate conjugation systems
+        # Create temporary FASTA for analysis tools
         with tempfile.NamedTemporaryFile(mode='w', suffix='.fna', delete=False) as f:
             for seq_id, seq_record in plasmid_sequence.items():
                 f.write(f">{seq_id}\n{str(seq_record.seq)}\n")
             temp_fasta = f.name
         
+        # Identify conjugation systems
         hmm_files = glob.glob(str(HMM_PATH / '*'))
+        logger.info(f"Found {len(hmm_files)} HMM files")
+        if len(hmm_files) == 0:
+            logger.warning(f"No HMM files found in {HMM_PATH}")
         conjugation_system = annotate_conjugation_system(temp_fasta, hmm_files)
+        conjugation_system = list(set(conjugation_system) & set(df.columns))
+        logger.info(f"Detected conjugation systems: {conjugation_system}")
+        
+        # Identify Inc types using plasmidfinder
+        inc_types = []
+        try:
+            with tempfile.TemporaryDirectory() as plsmd_tmpdir:
+                plsmd_output = run_plasmidfinder(
+                    temp_fasta,
+                    plsmd_tmpdir,
+                    app.config['PLASMIDFINDER_DB_PATH']
+                )
+                if plsmd_output:
+                    json_path = Path(plsmd_output) / "data.json"
+                    if json_path.exists():
+                        plasmidfinder_output = parse_plasmidfinder_json(str(json_path))
+                        if not plasmidfinder_output.empty:
+                            inc_types = list(set(plasmidfinder_output['plasmid']) & set(df.columns))
+                            logger.info(f"Detected Inc types: {inc_types}")
+        except Exception as e:
+            logger.warning(f"Could not run plasmidfinder: {e}")
+        
+        # Identify drug classes and resistance mechanisms using RGI
+        drug_classes = []
+        resistance_mechanisms = []
+        try:
+            with tempfile.TemporaryDirectory() as rgi_tmpdir:
+                rgi_prefix = Path(rgi_tmpdir) / "rgi_out"
+                rgi_output_prefix = run_rgi(temp_fasta, str(rgi_prefix))
+                if rgi_output_prefix:
+                    rgi_txt = str(rgi_output_prefix) + ".txt"
+                    if os.path.exists(rgi_txt):
+                        rgi_output = parse_rgi_output(rgi_txt)
+                        
+                        if not rgi_output.empty:
+                            # Extract drug classes
+                            drug_class_list = [
+                                drug.strip()
+                                for row in rgi_output["Drug Class"].dropna().unique()
+                                for drug in row.split(";")
+                            ]
+                            drug_classes = list(set(drug_class_list) & set(df.columns))
+                            logger.info(f"Detected drug classes: {drug_classes}")
+                            
+                            # Extract resistance mechanisms
+                            resistance_mech_list = [
+                                mechanism.strip()
+                                for row in rgi_output["Resistance Mechanism"].dropna().unique()
+                                for mechanism in row.split(";")
+                            ]
+                            resistance_mechanisms = list(set(resistance_mech_list) & set(df.columns))
+                            logger.info(f"Detected resistance mechanisms: {resistance_mechanisms}")
+        except Exception as e:
+            logger.warning(f"Could not run RGI: {e}")
+        
+        # Clean temporary FASTA
         os.unlink(temp_fasta)
         
-        # Clean inc_type names (remove parentheses)
+        # Clean inc types (remove parentheses)
         inc_type_cleaned = [re.sub(r"\([^)]*\)", "", item) for item in inc_types]
         
-        # Set feature values for selected categories
+        # Compile all features
         all_features = (
             drug_classes +
             resistance_mechanisms +
@@ -201,12 +412,10 @@ def predict_host_range(fasta_content, inc_types, drug_classes,
             conjugation_system
         )
         
-        # Only set features that exist in the model
         valid_features = [f for f in all_features if f in df.columns]
         if valid_features:
             df.loc[first_seq_id, valid_features] = 1
         
-        # Make prediction
         prediction_proba = model.predict_proba(df)[0]
         prediction_class = model.predict(df)[0]
         
@@ -216,7 +425,12 @@ def predict_host_range(fasta_content, inc_types, drug_classes,
             'success': True,
             'sequence_id': first_seq_id,
             'sequence_length': len(plasmid_sequence[first_seq_id].seq),
-            'conjugation_systems': conjugation_system,
+            'detected_features': {
+                'conjugation_systems': conjugation_system,
+                'inc_types': inc_type_cleaned,
+                'drug_classes': drug_classes,
+                'resistance_mechanisms': resistance_mechanisms
+            },
             'predictions': {
                 label: float(prob)
                 for label, prob in zip(labels, prediction_proba)
@@ -232,6 +446,7 @@ def predict_host_range(fasta_content, inc_types, drug_classes,
         return result
     
     except Exception as e:
+        logger.error(f"Error in predict_host_range: {str(e)}")
         return {'error': str(e), 'success': False}
 
 
@@ -249,9 +464,6 @@ def api_predict():
         seq_input = request.form.get('sequence_input', '').strip()
         seq_source = request.form.get('sequence_source', 'text')
         
-        inc_types = request.form.getlist('inc_type')
-        drug_classes = request.form.getlist('drug_class')
-        resistance_mechanisms = request.form.getlist('resistance_mechanism')
         isolation_sources = request.form.getlist('isolation_source')
         
         # Get sequence
@@ -282,9 +494,7 @@ def api_predict():
                 }), 400
             fasta_content = seq_input
         
-        # Validate selections
-        # Inc types, drug classes, and resistance mechanisms can be empty
-        # Only isolation sources is required (exactly one)
+        # Validate isolation source (required, exactly one)
         if not isolation_sources or len(isolation_sources) != 1:
             return jsonify({
                 'error': 'Please select exactly one isolation source',
@@ -292,13 +502,7 @@ def api_predict():
             }), 400
         
         # Run prediction
-        result = predict_host_range(
-            fasta_content,
-            inc_types,
-            drug_classes,
-            resistance_mechanisms,
-            isolation_sources
-        )
+        result = predict_host_range(fasta_content, isolation_sources)
         
         # Clean up file if uploaded
         if seq_source == 'file' and os.path.exists(filepath):
@@ -316,89 +520,11 @@ def api_predict():
 @app.route('/api/metadata', methods=['GET'])
 def api_metadata():
     """Get available options for dropdowns"""
-    # Load inc types from file
-    inc_types = []
-    try:
-        with open('inc_types.txt', 'r') as f:
-            inc_types = [line.strip() for line in f if line.strip()]
-    except FileNotFoundError:
-        # Fallback to hardcoded list if file not found
-        inc_types = [
-            'IncQ1',
-            'IncHI1B',
-            'IncHI1A',
-            'IncC',
-            'IncF',
-            'IncX',
-            'IncN',
-            'IncP',
-            'IncW',
-            'IncM',
-            'IncU',
-            'IncT',
-            'IncA',
-            'IncB',
-            'IncD',
-            'IncE',
-            'IncG',
-            'IncH',
-            'IncJ',
-            'IncK',
-            'IncL',
-            'IncO',
-            'IncS',
-            'IncV',
-            'IncZ'
-        ]
+    # Note: Inc types, drug classes, and resistance mechanisms are now
+    # automatically detected from the sequence. These lists are kept for
+    # reference purposes only and are no longer used in the API.
     
     return jsonify({
-        'inc_types': inc_types,
-        'drug_classes': [
-            'aminocoumarin antibiotic',
-            'aminoglycoside antibiotic',
-            'antibacterial free fatty acids',
-            'bicyclomycin-like antibiotic',
-            'carbapenem',
-            'cephamycin',
-            'diaminopyrimidine antibiotic',
-            'disinfecting agents and antiseptics',
-            'elfamycin antibiotic',
-            'fluoroquinolone antibiotic',
-            'glycopeptide antibiotic',
-            'glycylcycline',
-            'isoniazid-like antibiotic',
-            'lincosamide antibiotic',
-            'macrolide antibiotic',
-            'monobactam',
-            'mupirocin-like antibiotic',
-            'nitrofuran antibiotic',
-            'orthosomycin antibiotic',
-            'oxazolidinone antibiotic',
-            'penam',
-            'penem',
-            'peptide antibiotic',
-            'phenicol antibiotic',
-            'phosphonic acid antibiotic',
-            'pleuromutilin antibiotic',
-            'polyamine antibiotic',
-            'pyrazine antibiotic',
-            'rifamycin antibiotic',
-            'salicylic acid antibiotic',
-            'streptogramin antibiotic',
-            'streptogramin A antibiotic',
-            'streptogramin B antibiotic',
-            'sulfonamide antibiotic',
-            'tetracycline antibiotic',
-            'thioamide antibiotic'
-        ],
-        'resistance_mechanisms': [
-            'antibiotic efflux',
-            'antibiotic inactivation',
-            'antibiotic target replacement',
-            'antibiotic target protection',
-            'antibiotic target alteration',
-            'reduced permeability to antibiotic'
-        ],
         'isolation_sources': [
             'Aquatic animal',
             'Clinical',

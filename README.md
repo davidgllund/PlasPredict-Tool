@@ -1,11 +1,12 @@
-# Plasmid Host Range Predictor (PlasPredict)
+# Plasmid Host Range Predictor (PlasPart)
 
-A machine learning-powered web application for predicting the host range of plasmids using k-mer composition analysis and conjugation system detection.
+A machine learning-powered web application for predicting the host range of plasmids using k-mer composition analysis, conjugation system detection, and automated feature identification.
 
 ## Overview
 
-PlasPredict analyzes plasmid DNA sequences to predict their potential bacterial host range based on genomic features:
-- **K-mer composition analysis** - Uses k-mer frequency distribution (k=1-6) extracted from plasmid sequences
+PlasPart analyzes plasmid DNA sequences to predict their potential bacterial host range based on genomic features:
+- **K-mer composition analysis** - Uses k-mer frequency distribution (k=3) extracted from plasmid sequences
+- **Automated feature detection** - Automatically identifies incompatibility types (via Plasmidfinder), drug classes and resistance mechanisms (via RGI)
 - **Machine learning prediction** - XGBoost-based model trained on known plasmid-host relationships
 - **Conjugation system detection** - Identifies conjugative elements using HMM models from ConjScan
 
@@ -30,8 +31,8 @@ PlasPredict analyzes plasmid DNA sequences to predict their potential bacterial 
 
 ```bash
 # Clone the repository
-git clone https://github.com/davidgllund/plaspredict.git
-cd plaspredict
+git clone https://github.com/davidgllund/plaspart.git
+cd plaspart
 
 # Install system dependencies (Ubuntu/Debian)
 sudo apt-get install -y prodigal hmmer
@@ -54,8 +55,8 @@ The web application will be available at `http://localhost:5000`
 #### Build Locally
 
 ```bash
-docker build -f app/Dockerfile -t plaspredict:latest .
-docker run -p 8000:8000 plaspredict:latest
+docker build -f app/Dockerfile -t plaspart:latest .
+docker run -p 8000:8000 plaspart:latest
 ```
 
 Access at `http://localhost:8000`
@@ -63,8 +64,8 @@ Access at `http://localhost:8000`
 #### Using DockerHub Image
 
 ```bash
-docker pull davidgllund/plaspredict:latest
-docker run -p 8000:8000 davidgllund/plaspredict:latest
+docker pull davidgllund/plaspart:latest
+docker run -p 8000:8000 davidgllund/plaspart:latest
 ```
 
 #### Docker Compose
@@ -77,7 +78,7 @@ docker-compose up
 ## Project Structure
 
 ```
-plaspredict/
+plaspart/
 ├── app/
 │   ├── app.py                    # Main Flask application
 │   ├── config.py                 # Configuration management

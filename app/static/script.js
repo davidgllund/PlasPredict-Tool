@@ -36,23 +36,13 @@ updateInputDisplay();
 loadFormOptions();
 
 /**
- * Load form options from API (esp. all inc types from file)
+ * Load form options from API
  */
 async function loadFormOptions() {
     try {
         const response = await fetch('/api/metadata');
         const data = await response.json();
-        
-        // Populate inc_types from file
-        const incTypeContainer = document.getElementById('inc-type-container');
-        if (incTypeContainer && data.inc_types) {
-            incTypeContainer.innerHTML = '';
-            data.inc_types.forEach(type => {
-                const label = document.createElement('label');
-                label.innerHTML = `<input type="checkbox" name="inc_type" value="${type}"> ${type}`;
-                incTypeContainer.appendChild(label);
-            });
-        }
+        // Metadata loaded for future use
     } catch (error) {
         console.error('Error loading form options:', error);
     }
@@ -127,9 +117,6 @@ async function handleFormSubmit(e) {
  */
 function validateForm() {
     const sequenceSource = document.querySelector('input[name="sequence_source"]:checked').value;
-    const incTypes = document.querySelectorAll('input[name="inc_type"]:checked').length;
-    const drugClasses = document.querySelectorAll('input[name="drug_class"]:checked').length;
-    const resistanceMechanisms = document.querySelectorAll('input[name="resistance_mechanism"]:checked').length;
     const isolationSources = document.querySelectorAll('input[name="isolation_source"]:checked').length;
     
     if (sequenceSource === 'text') {
@@ -143,9 +130,6 @@ function validateForm() {
             return { valid: false, message: 'Please select a file' };
         }
     }
-    
-    // Inc types, drug classes, and resistance mechanisms can be zero or more
-    // (no validation required for these)
     
     // Isolation source must be exactly one
     if (isolationSources !== 1) {
@@ -169,14 +153,9 @@ function displayResults(result) {
     document.getElementById('resultSeqLength').textContent = 
         result.sequence_length.toLocaleString();
     
-    // Populate conjugation systems if any
-    if (result.conjugation_systems && result.conjugation_systems.length > 0) {
-        const conjugationCard = document.getElementById('conjugationCard');
-        const conjugationSystems = document.getElementById('conjugationSystems');
-        conjugationCard.style.display = 'block';
-        conjugationSystems.innerHTML = result.conjugation_systems
-            .map(system => `<span class="conj-badge">${system}</span>`)
-            .join('');
+    // Populate detected features
+    if (result.detected_features) {
+        displayDetectedFeatures(result.detected_features);
     }
     
     // Populate top prediction
@@ -184,7 +163,7 @@ function displayResults(result) {
     document.getElementById('topProbability').textContent = 
         result.top_probability.toFixed(3);
     
-    // Populate detailed predictions
+    // Populate detailed predictions (with fixed order)
     displayDetailedPredictions(result.predictions);
     
     // Scroll to results
@@ -192,16 +171,84 @@ function displayResults(result) {
 }
 
 /**
- * Display detailed prediction bars
+ * Display detected features from sequence analysis
+ */
+function displayDetectedFeatures(features) {
+    const detectedFeaturesCard = document.getElementById('detectedFeaturesCard');
+    
+    if (!detectedFeaturesCard) return;
+    
+    let hasFeatures = false;
+    let featureHtml = '';
+    
+    // Conjugation systems
+    if (features.conjugation_systems && features.conjugation_systems.length > 0) {
+        hasFeatures = true;
+        featureHtml += '<div class="feature-category"><strong>Conjugation Systems:</strong> ';
+        featureHtml += features.conjugation_systems
+            .map(system => `<span class="feature-badge">${system}</span>`)
+            .join(' ');
+        featureHtml += '</div>';
+    }
+    
+    // Inc types
+    if (features.inc_types && features.inc_types.length > 0) {
+        hasFeatures = true;
+        featureHtml += '<div class="feature-category"><strong>Incompatibility Types:</strong> ';
+        featureHtml += features.inc_types
+            .map(type => `<span class="feature-badge">${type}</span>`)
+            .join(' ');
+        featureHtml += '</div>';
+    }
+    
+    // Drug classes
+    if (features.drug_classes && features.drug_classes.length > 0) {
+        hasFeatures = true;
+        featureHtml += '<div class="feature-category"><strong>Antibiotic Classes:</strong> ';
+        featureHtml += features.drug_classes
+            .map(drug => `<span class="feature-badge">${drug}</span>`)
+            .join(' ');
+        featureHtml += '</div>';
+    }
+    
+    // Resistance mechanisms
+    if (features.resistance_mechanisms && features.resistance_mechanisms.length > 0) {
+        hasFeatures = true;
+        featureHtml += '<div class="feature-category"><strong>Resistance Mechanisms:</strong> ';
+        featureHtml += features.resistance_mechanisms
+            .map(mech => `<span class="feature-badge">${mech}</span>`)
+            .join(' ');
+        featureHtml += '</div>';
+    }
+    
+    if (hasFeatures) {
+        detectedFeaturesCard.style.display = 'block';
+        document.getElementById('detectedFeatures').innerHTML = featureHtml;
+    } else {
+        detectedFeaturesCard.style.display = 'none';
+    }
+}
+
+/**
+ * Display detailed prediction bars with fixed order
  */
 function displayDetailedPredictions(predictions) {
     const chart = document.getElementById('predictionsChart');
     chart.innerHTML = '';
     
-    // Convert to array and sort by probability (highest first)
-    const entries = Object.entries(predictions).sort((a, b) => b[1] - a[1]);
+    // Define fixed order (top to bottom as requested)
+    const fixedOrder = [
+        '≥ Phylum',
+        'Order/Class',
+        'Genus/Family',
+        '≤ Species'
+    ];
     
-    entries.forEach(([label, probability]) => {
+    // Display in fixed order
+    fixedOrder.forEach(label => {
+        const probability = predictions[label];
+        if (probability === undefined) return;
+        
         const item = document.createElement('div');
         item.className = 'prediction-item';
         

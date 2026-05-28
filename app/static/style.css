@@ -417,6 +417,29 @@ select[multiple] option:checked {
     font-weight: 600;
 }
 
+/* Feature Badges and Categories */
+.feature-badge {
+    display: inline-block;
+    background-color: #e0f2fe;
+    color: #0369a1;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin: 4px;
+}
+
+.feature-category {
+    margin-bottom: 12px;
+}
+
+.feature-category strong {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--primary-dark);
+    font-size: 0.95rem;
+}
+
 /* Primary Prediction Card */
 .primary-prediction {
     border-left-color: var(--success-color);
