@@ -346,7 +346,8 @@ def predict_host_range(fasta_content, isolation_sources):
         logger.info(f"Detected conjugation systems: {conjugation_system}")
         
         # Identify Inc types using plasmidfinder
-        inc_types = []
+        inc_types_detected = []  # Raw detected types (for reporting to user)
+        inc_types = []  # Filtered/cleaned types (for model input)
         try:
             with tempfile.TemporaryDirectory() as plsmd_tmpdir:
                 plsmd_output = run_plasmidfinder(
@@ -359,14 +360,21 @@ def predict_host_range(fasta_content, isolation_sources):
                     if json_path.exists():
                         plasmidfinder_output = parse_plasmidfinder_json(str(json_path))
                         if not plasmidfinder_output.empty:
-                            inc_types = list(set(plasmidfinder_output['plasmid']) & set(df.columns))
-                            logger.info(f"Detected Inc types: {inc_types}")
+                            # Keep raw detected types for user reporting
+                            inc_types_detected = list(set(plasmidfinder_output['plasmid']))
+                            # Clean and filter for model input
+                            inc_type_cleaned_temp = [re.sub(r"\([^)]*\)", "", item) for item in inc_types_detected]
+                            inc_types = list(set(inc_type_cleaned_temp) & set(df.columns))
+                            logger.info(f"Detected Inc types (raw): {inc_types_detected}")
+                            logger.info(f"Inc types for model: {inc_types}")
         except Exception as e:
             logger.warning(f"Could not run plasmidfinder: {e}")
         
         # Identify drug classes and resistance mechanisms using RGI
-        drug_classes = []
-        resistance_mechanisms = []
+        drug_classes_detected = []  # Raw detected classes (for reporting)
+        drug_classes = []  # Filtered for model input
+        resistance_mechanisms_detected = []  # Raw detected mechanisms (for reporting)
+        resistance_mechanisms = []  # Filtered for model input
         try:
             with tempfile.TemporaryDirectory() as rgi_tmpdir:
                 rgi_prefix = Path(rgi_tmpdir) / "rgi_out"
@@ -377,34 +385,40 @@ def predict_host_range(fasta_content, isolation_sources):
                         rgi_output = parse_rgi_output(rgi_txt)
                         
                         if not rgi_output.empty:
-                            # Extract drug classes
+                            # Extract drug classes (raw detected)
                             drug_class_list = [
                                 drug.strip()
                                 for row in rgi_output["Drug Class"].dropna().unique()
                                 for drug in row.split(";")
                             ]
-                            drug_classes = list(set(drug_class_list) & set(df.columns))
-                            logger.info(f"Detected drug classes: {drug_classes}")
+                            drug_classes_detected = list(set(drug_class_list))
+                            # Filter for model
+                            drug_classes = list(set(drug_classes_detected) & set(df.columns))
+                            logger.info(f"Detected drug classes (raw): {drug_classes_detected}")
+                            logger.info(f"Drug classes for model: {drug_classes}")
                             
-                            # Extract resistance mechanisms
+                            # Extract resistance mechanisms (raw detected)
                             resistance_mech_list = [
                                 mechanism.strip()
                                 for row in rgi_output["Resistance Mechanism"].dropna().unique()
                                 for mechanism in row.split(";")
                             ]
-                            resistance_mechanisms = list(set(resistance_mech_list) & set(df.columns))
-                            logger.info(f"Detected resistance mechanisms: {resistance_mechanisms}")
+                            resistance_mechanisms_detected = list(set(resistance_mech_list))
+                            # Filter for model
+                            resistance_mechanisms = list(set(resistance_mechanisms_detected) & set(df.columns))
+                            logger.info(f"Detected resistance mechanisms (raw): {resistance_mechanisms_detected}")
+                            logger.info(f"Resistance mechanisms for model: {resistance_mechanisms}")
         except Exception as e:
             logger.warning(f"Could not run RGI: {e}")
         
         # Clean temporary FASTA
         os.unlink(temp_fasta)
         
-        # Clean inc types (remove parentheses)
+        # Clean inc types (remove parentheses) for model input - use the already-filtered 'inc_types' list
         inc_type_cleaned = [re.sub(r"\([^)]*\)", "", item) for item in inc_types]
         
-        # Compile all features
-        all_features = (
+        # Compile all features for model (using filtered/cleaned versions)
+        all_features_for_model = (
             drug_classes +
             resistance_mechanisms +
             inc_type_cleaned +
@@ -412,7 +426,7 @@ def predict_host_range(fasta_content, isolation_sources):
             conjugation_system
         )
         
-        valid_features = [f for f in all_features if f in df.columns]
+        valid_features = [f for f in all_features_for_model if f in df.columns]
         if valid_features:
             df.loc[first_seq_id, valid_features] = 1
         
@@ -427,9 +441,9 @@ def predict_host_range(fasta_content, isolation_sources):
             'sequence_length': len(plasmid_sequence[first_seq_id].seq),
             'detected_features': {
                 'conjugation_systems': conjugation_system,
-                'inc_types': inc_type_cleaned,
-                'drug_classes': drug_classes,
-                'resistance_mechanisms': resistance_mechanisms
+                'inc_types': inc_types_detected,  # Return RAW detected types
+                'drug_classes': drug_classes_detected,  # Return RAW detected classes
+                'resistance_mechanisms': resistance_mechanisms_detected  # Return RAW detected mechanisms
             },
             'predictions': {
                 label: float(prob)
