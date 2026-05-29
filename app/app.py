@@ -288,7 +288,7 @@ def predict_host_range(fasta_content, isolation_sources):
     
     Args:
         fasta_content: FASTA sequence as string or file path
-        isolation_sources: List of isolation sources selected (exactly one)
+        isolation_sources: List of isolation sources selected (optional, 0 or 1)
     
     Returns:
         Dictionary with prediction results
@@ -494,13 +494,14 @@ def api_predict():
                 }), 400
             fasta_content = seq_input
         
-        # Validate isolation source (required, exactly one)
-        if not isolation_sources or len(isolation_sources) != 1:
+        # Validate isolation source (now optional, but max 1)
+        if len(isolation_sources) > 1:
             return jsonify({
-                'error': 'Please select exactly one isolation source',
+                'error': 'Please select only one isolation source',
                 'success': False
             }), 400
         
+        # If no isolation source provided, use empty list (will use default or None in prediction)
         # Run prediction
         result = predict_host_range(fasta_content, isolation_sources)
         

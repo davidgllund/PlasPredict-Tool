@@ -440,6 +440,21 @@ select[multiple] option:checked {
     font-size: 0.95rem;
 }
 
+/* Identified Elements Card */
+.identified-element {
+    margin-bottom: 12px;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-left: 4px solid var(--primary-color);
+    border-radius: 4px;
+    line-height: 1.6;
+}
+
+.identified-element strong {
+    color: var(--primary-dark);
+    font-weight: 600;
+}
+
 /* Primary Prediction Card */
 .primary-prediction {
     border-left-color: var(--success-color);

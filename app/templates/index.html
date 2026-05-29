@@ -49,9 +49,9 @@
 
                 <!-- Feature Selection Sections -->
                 <section class="form-section">
-                    <h2>2. Isolation Source</h2>
+                    <h2>2. Isolation Source (Optional)</h2>
                     <p style="font-size: 0.95em; color: #666; margin-bottom: 1rem;">
-                        Plasmid features (incompatibility types, antibiotic resistance, and conjugation systems) are automatically detected from your sequence.
+                        Plasmid features (incompatibility types, antibiotic resistance, and conjugation systems) are automatically detected from your sequence. Optionally, specify the isolation source to improve host range predictions.
                     </p>
 
                     <!-- Isolation Sources -->
@@ -101,6 +101,12 @@
                     <div class="result-card" id="detectedFeaturesCard" style="display: none;">
                         <h3>Detected Features</h3>
                         <div id="detectedFeatures"></div>
+                    </div>
+
+                    <!-- Identified Elements Summary -->
+                    <div class="result-card" id="identifiedElementsCard" style="display: none;">
+                        <h3>Identified Plasmid Elements</h3>
+                        <div id="identifiedElements"></div>
                     </div>
 
                     <!-- Primary Prediction -->

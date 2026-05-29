@@ -131,9 +131,9 @@ function validateForm() {
         }
     }
     
-    // Isolation source must be exactly one
-    if (isolationSources !== 1) {
-        return { valid: false, message: 'Please select exactly one isolation source' };
+    // Isolation source is now optional (can be 0 or 1)
+    if (isolationSources > 1) {
+        return { valid: false, message: 'Please select only one isolation source' };
     }
     
     return { valid: true };
@@ -156,6 +156,7 @@ function displayResults(result) {
     // Populate detected features
     if (result.detected_features) {
         displayDetectedFeatures(result.detected_features);
+        displayIdentifiedElements(result.detected_features);
     }
     
     // Populate top prediction
@@ -227,6 +228,54 @@ function displayDetectedFeatures(features) {
     } else {
         detectedFeaturesCard.style.display = 'none';
     }
+}
+
+/**
+ * Display identified plasmid elements summary
+ * Shows Inc types, Conjugative elements, and Antibiotic resistance genes
+ */
+function displayIdentifiedElements(features) {
+    const identifiedElementsCard = document.getElementById('identifiedElementsCard');
+    
+    if (!identifiedElementsCard) return;
+    
+    let hasElements = false;
+    let elementHtml = '';
+    
+    // Inc types
+    if (features.inc_types && features.inc_types.length > 0) {
+        hasElements = true;
+        elementHtml += '<div class="identified-element"><strong>Inc Type(s):</strong> ';
+        elementHtml += features.inc_types.length > 0 
+            ? features.inc_types.join(', ')
+            : 'None detected';
+        elementHtml += '</div>';
+    } else {
+        elementHtml += '<div class="identified-element"><strong>Inc Type(s):</strong> None detected</div>';
+    }
+    
+    // Conjugative elements (conjugation systems)
+    if (features.conjugation_systems && features.conjugation_systems.length > 0) {
+        hasElements = true;
+        elementHtml += '<div class="identified-element"><strong>Conjugative Element(s):</strong> ';
+        elementHtml += features.conjugation_systems.join(', ');
+        elementHtml += '</div>';
+    } else {
+        elementHtml += '<div class="identified-element"><strong>Conjugative Element(s):</strong> None detected</div>';
+    }
+    
+    // Antibiotic resistance genes
+    if (features.drug_classes && features.drug_classes.length > 0) {
+        hasElements = true;
+        elementHtml += '<div class="identified-element"><strong>Antibiotic Resistance Gene(s):</strong> ';
+        elementHtml += features.drug_classes.join(', ');
+        elementHtml += '</div>';
+    } else {
+        elementHtml += '<div class="identified-element"><strong>Antibiotic Resistance Gene(s):</strong> None detected</div>';
+    }
+    
+    identifiedElementsCard.style.display = 'block';
+    document.getElementById('identifiedElements').innerHTML = elementHtml;
 }
 
 /**
