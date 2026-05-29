@@ -4,7 +4,5 @@ joblib==1.5.3
 numpy==2.4.6
 pandas==3.0.3
 biopython==1.87
-xgboost==3.2.0
-plasmidfinder==2.1.6
-rgi==6.0.5
+xgboost==3.2.0 
 gunicorn==21.2.0
