@@ -1,0 +1,22 @@
+{
+  "version": "1.2",
+  "dbname": "protein.db",
+  "dbtype": "Protein",
+  "db-version": 5,
+  "description": "/home/dlund/plasmid_project/scripts/localDB/proteindb.fsa",
+  "number-of-letters": 2075523,
+  "number-of-sequences": 6302,
+  "last-updated": "2026-05-28T10:28:00",
+  "number-of-volumes": 1,
+  "bytes-total": 3099711,
+  "bytes-to-cache": 2132386,
+  "files": [
+    "protein.db.pdb",
+    "protein.db.phr",
+    "protein.db.pin",
+    "protein.db.pot",
+    "protein.db.psq",
+    "protein.db.ptf",
+    "protein.db.pto"
+  ]
+}
