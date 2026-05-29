@@ -10,13 +10,11 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app
+WORKDIR /build
 COPY requirements.txt .
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
-
-COPY . .
 
 # ── Stage 2: runtime ─────────────────────────────────────────────────────────
 FROM python:3.11-slim
@@ -36,11 +34,8 @@ RUN apt-get update && apt-get install -y \
 # Copy Python packages from builder
 COPY --from=builder /usr/local /usr/local
 
-# Copy application code
-COPY app/ $HOME/app/
-
-# Copy start script into WORKDIR — Serve calls it as ./start-script.sh
-COPY app/start-script.sh $HOME/app/start-script.sh
+# Copy application code from context root
+COPY . $HOME/app/
 
 # Create the data directory that Serve will mount the volume onto
 RUN mkdir -p $HOME/data \
