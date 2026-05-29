@@ -202,26 +202,16 @@ function displayDetectedFeatures(features) {
         featureHtml += '</div>';
     }
     
-    // Drug classes
-    if (features.drug_classes && features.drug_classes.length > 0) {
+    // Antibiotic resistance genes
+    if (features.antibiotic_resistance_genes && features.antibiotic_resistance_genes.length > 0) {
         hasFeatures = true;
-        featureHtml += '<div class="feature-category"><strong>Antibiotic Classes:</strong> ';
-        featureHtml += features.drug_classes
+        featureHtml += '<div class="feature-category"><strong>Antibiotic Resistance Genes:</strong> ';
+        featureHtml += features.antibiotic_resistance_genes
             .map(drug => `<span class="feature-badge">${drug}</span>`)
             .join(' ');
         featureHtml += '</div>';
     }
-    
-    // Resistance mechanisms
-    if (features.resistance_mechanisms && features.resistance_mechanisms.length > 0) {
-        hasFeatures = true;
-        featureHtml += '<div class="feature-category"><strong>Resistance Mechanisms:</strong> ';
-        featureHtml += features.resistance_mechanisms
-            .map(mech => `<span class="feature-badge">${mech}</span>`)
-            .join(' ');
-        featureHtml += '</div>';
-    }
-    
+     
     if (hasFeatures) {
         detectedFeaturesCard.style.display = 'block';
         document.getElementById('detectedFeatures').innerHTML = featureHtml;

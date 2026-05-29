@@ -89,12 +89,14 @@ def calc_kmer_distributions(genome, k, possible_kmers):
 def annotate_conjugation_system(filepath, models):
     """Identify conjugation systems in plasmid using HMM models"""
     conjugation_system = []
+    logger.info(f"Starting conjugation annotation with {len(models)} HMM models")
     
     with tempfile.TemporaryDirectory() as tmpdir:
         tmp = Path(tmpdir)
         proteins = tmp / "proteins.faa"
         
         try:
+            logger.info(f"Running prodigal on {filepath}")
             result = subprocess.run(
                 ["prodigal", "-i", filepath, "-a", str(proteins), "-p", "meta"],
                 capture_output=True,
@@ -102,10 +104,16 @@ def annotate_conjugation_system(filepath, models):
             )
             
             if result.returncode != 0:
-                logger.warning(f"Prodigal failed: {result.stderr}")
+                logger.error(f"Prodigal failed with return code {result.returncode}")
+                logger.error(f"Prodigal stderr: {result.stderr}")
+                logger.error(f"Prodigal stdout: {result.stdout}")
                 return conjugation_system
             
+            logger.info(f"Prodigal succeeded, proteins written to {proteins}")
+            logger.info(f"Proteins file exists: {proteins.exists()}")
+            
             for hmm in models:
+                logger.debug(f"Searching HMM: {hmm}")
                 hits = subprocess.run(
                     f'hmmsearch -E 0.0000000001 "{hmm}" "{proteins}"',
                     shell=True,
@@ -113,14 +121,24 @@ def annotate_conjugation_system(filepath, models):
                     text=True
                 )
                 
-                if hits.returncode == 0 and "[No hits detected that satisfy reporting thresholds]" not in hits.stdout:
-                    element = hmm.split('/')[-1].split('.')[0].split('_')[0]
-                    if element not in conjugation_system:
-                        conjugation_system.append(element)
+                if hits.returncode == 0:
+                    if "[No hits detected that satisfy reporting thresholds]" not in hits.stdout:
+                        element = hmm.split('/')[-1].split('.')[0].split('_')[0]
+                        logger.info(f"Found HMM hit: {element} from {hmm}")
+                        if element not in conjugation_system:
+                            conjugation_system.append(element)
+                    else:
+                        logger.debug(f"No hits in {hmm}")
+                else:
+                    logger.warning(f"hmmsearch failed on {hmm}: return code {hits.returncode}")
+                    logger.warning(f"hmmsearch stderr: {hits.stderr}")
         
         except Exception as e:
-            logger.warning(f"Warning: Could not run conjugation annotation: {e}")
+            logger.error(f"Exception in conjugation annotation: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
     
+    logger.info(f"Conjugation annotation complete. Found: {conjugation_system}")
     return conjugation_system
 
 
@@ -198,6 +216,9 @@ def run_rgi(fasta_path, output_prefix, executable="rgi"):
     output_prefix = Path(output_prefix).resolve()
     output_prefix.parent.mkdir(parents=True, exist_ok=True)
 
+    logger.info(f"Running RGI on {fasta_path}")
+    logger.info(f"RGI output prefix: {output_prefix}")
+
     cmd = [
         executable,
         "main",
@@ -208,11 +229,16 @@ def run_rgi(fasta_path, output_prefix, executable="rgi"):
     ]
 
     result = subprocess.run(cmd, capture_output=True, text=True)
+    
+    logger.info(f"RGI stdout: {result.stdout}")
+    logger.info(f"RGI stderr: {result.stderr}")
+    logger.info(f"RGI return code: {result.returncode}")
 
     if result.returncode != 0:
-        logger.warning(f"RGI failed: {result.stderr}")
+        logger.error(f"RGI failed with return code {result.returncode}")
         return None
 
+    logger.info(f"RGI completed successfully")
     return output_prefix
 
 
@@ -378,38 +404,61 @@ def predict_host_range(fasta_content, isolation_sources):
         try:
             with tempfile.TemporaryDirectory() as rgi_tmpdir:
                 rgi_prefix = Path(rgi_tmpdir) / "rgi_out"
+                logger.info(f"RGI temporary directory: {rgi_tmpdir}")
                 rgi_output_prefix = run_rgi(temp_fasta, str(rgi_prefix))
                 if rgi_output_prefix:
                     rgi_txt = str(rgi_output_prefix) + ".txt"
+                    logger.info(f"Looking for RGI output at: {rgi_txt}")
+                    logger.info(f"RGI output file exists: {os.path.exists(rgi_txt)}")
+                    
                     if os.path.exists(rgi_txt):
                         rgi_output = parse_rgi_output(rgi_txt)
+                        logger.info(f"RGI output shape: {rgi_output.shape}")
                         
                         if not rgi_output.empty:
-                            # Extract drug classes (raw detected)
+                            # Extract ARGs
+                            arg_list = [
+                                arg.strip()
+                                for row in rgi_output["Best_Hit_ARO"].dropna().unique()
+                                for arg in row.split(";")
+                            ] 
+                            args_detected = list(set(arg_list))
+                            logger.info(f"Detected antibiotic resistance genes: {args_detected}")
+
+                            # Extract drug classes
                             drug_class_list = [
                                 drug.strip()
                                 for row in rgi_output["Drug Class"].dropna().unique()
                                 for drug in row.split(";")
-                            ]
-                            drug_classes_detected = list(set(drug_class_list))
+                            ] 
+
                             # Filter for model
-                            drug_classes = list(set(drug_classes_detected) & set(df.columns))
-                            logger.info(f"Detected drug classes (raw): {drug_classes_detected}")
+                            drug_classes = list(set(drug_class_list) & set(df.columns))
                             logger.info(f"Drug classes for model: {drug_classes}")
                             
-                            # Extract resistance mechanisms (raw detected)
+                            # Extract resistance mechanisms
                             resistance_mech_list = [
                                 mechanism.strip()
                                 for row in rgi_output["Resistance Mechanism"].dropna().unique()
                                 for mechanism in row.split(";")
-                            ]
-                            resistance_mechanisms_detected = list(set(resistance_mech_list))
+                            ] 
+
                             # Filter for model
-                            resistance_mechanisms = list(set(resistance_mechanisms_detected) & set(df.columns))
-                            logger.info(f"Detected resistance mechanisms (raw): {resistance_mechanisms_detected}")
+                            resistance_mechanisms = list(set(resistance_mech_list) & set(df.columns))
                             logger.info(f"Resistance mechanisms for model: {resistance_mechanisms}")
+                        else:
+                            logger.info("RGI output was empty")
+                            args_detected = []
+                    else:
+                        logger.warning(f"RGI output file not found at {rgi_txt}")
+                        # List directory contents for debugging
+                        logger.debug(f"Contents of {Path(rgi_txt).parent}: {list(Path(rgi_txt).parent.iterdir())}")
+                else:
+                    logger.warning("RGI did not return an output prefix")
         except Exception as e:
-            logger.warning(f"Could not run RGI: {e}")
+            logger.error(f"Could not run RGI: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
         
         # Clean temporary FASTA
         os.unlink(temp_fasta)
@@ -441,9 +490,8 @@ def predict_host_range(fasta_content, isolation_sources):
             'sequence_length': len(plasmid_sequence[first_seq_id].seq),
             'detected_features': {
                 'conjugation_systems': conjugation_system,
-                'inc_types': inc_types_detected,  # Return RAW detected types
-                'drug_classes': drug_classes_detected,  # Return RAW detected classes
-                'resistance_mechanisms': resistance_mechanisms_detected  # Return RAW detected mechanisms
+                'inc_types': inc_types_detected,
+                'antibiotic_resistance_genes': args_detected
             },
             'predictions': {
                 label: float(prob)
@@ -514,9 +562,10 @@ def api_predict():
                 'error': 'Please select only one isolation source',
                 'success': False
             }), 400
-        
-        # If no isolation source provided, use empty list (will use default or None in prediction)
-        # Run prediction
+         
+        if not isolation_sources:
+            isolation_sources = []
+ 
         result = predict_host_range(fasta_content, isolation_sources)
         
         # Clean up file if uploaded
