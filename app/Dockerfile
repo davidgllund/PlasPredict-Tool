@@ -1,17 +1,24 @@
 # ── Stage 1: build ──────────────────────────────────────────────────────────
-FROM python:3.11-slim AS builder
+FROM python:3.11-slim
 
-WORKDIR /build
-
-# Install system dependencies
+# Install system dependencies for bioinformatics tools
 RUN apt-get update && apt-get install -y \
-    prodigal \
     hmmer \
+    prodigal \
+    blast2 \
+    git \
+    build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements and install Python dependencies
-COPY app/requirements.txt .
-RUN pip install --prefix=/install --no-cache-dir -r requirements.txt
+WORKDIR /app
+COPY requirements.txt .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app"]
  
 # ── Stage 2: runtime ─────────────────────────────────────────────────────────
 FROM python:3.11-slim
