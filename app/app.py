@@ -397,10 +397,9 @@ def predict_host_range(fasta_content, isolation_sources):
             logger.warning(f"Could not run plasmidfinder: {e}")
         
         # Identify drug classes and resistance mechanisms using RGI
-        drug_classes_detected = []  # Raw detected classes (for reporting)
-        drug_classes = []  # Filtered for model input
-        resistance_mechanisms_detected = []  # Raw detected mechanisms (for reporting)
-        resistance_mechanisms = []  # Filtered for model input
+        drug_classes = []
+        resistance_mechanisms = []
+        args_detected = []
         try:
             with tempfile.TemporaryDirectory() as rgi_tmpdir:
                 rgi_prefix = Path(rgi_tmpdir) / "rgi_out"
@@ -448,7 +447,6 @@ def predict_host_range(fasta_content, isolation_sources):
                             logger.info(f"Resistance mechanisms for model: {resistance_mechanisms}")
                         else:
                             logger.info("RGI output was empty")
-                            args_detected = []
                     else:
                         logger.warning(f"RGI output file not found at {rgi_txt}")
                         # List directory contents for debugging
