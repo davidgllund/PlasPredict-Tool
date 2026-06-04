@@ -21,7 +21,7 @@ RUN pip install git+https://github.com/arpcard/rgi.git
 RUN pip install plasmidfinder
 
 # Copy application code
-COPY requirements.txt /build/
+COPY app/requirements.txt /build/
 
 # Install any other Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
