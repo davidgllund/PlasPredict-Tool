@@ -1,15 +1,23 @@
-version: '3.8'
-
 services:
-  plasmid-predictor:
-    build: .
+  plaspart:
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "5000:5000"
-    volumes:
-      - ./uploads:/app/uploads
     environment:
       - FLASK_ENV=production
-      - FLASK_DEBUG=0
+      - FLASK_APP=app.py
+      - PLASMIDFINDER_DB_PATH=/home/appuser/app/db/plasmidfinder/database
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./models:/home/appuser/app/models:ro
+      - ./localDB:/home/appuser/app/localDB:ro
+      - ./uploads:/home/appuser/app/uploads
+      - ./logs:/home/appuser/app/logs
+    environment:
+      - FLASK_ENV=production
+      - PLASMIDFINDER_DB_PATH=/home/appuser/app/localDB
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/"]
@@ -17,3 +25,5 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    stdin_open: true
+    tty: true

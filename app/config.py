@@ -27,26 +27,23 @@ class Config:
     UPLOAD_FOLDER = os.path.join(PROJECT_ROOT, 'uploads')
     ALLOWED_EXTENSIONS = {'fna', 'fasta', 'fa', 'txt'}
     
-    # Model paths
-    MODEL_PATH = PROJECT_ROOT / 'models' / 'plaspredict_model.pkl'
-    HMM_PATH = PROJECT_ROOT / 'models' / 'conjscan_models'
-    
-    # External tools paths and databases
-    PLASMIDFINDER_DB_PATH = os.environ.get(
-        'PLASMIDFINDER_DB_PATH',
-        os.path.expanduser('~/.conda/envs/plaspart/share/plasmidfinder-2.1.6/database')
+    # Model paths - support both development and container environments
+    MODEL_PATH = os.environ.get(
+        'MODEL_PATH',
+        PROJECT_ROOT / 'models' / 'plaspredict_model.pkl'
+    )
+    HMM_PATH = os.environ.get(
+        'HMM_PATH',
+        PROJECT_ROOT / 'models' / 'conjscan_models'
     )
     
-    PRODIGAL_BINARY = 'prodigal'
-    HMMSEARCH_BINARY = 'hmmsearch'
-    RGI_BINARY = 'rgi'
-    
-    # Performance
-    PREDICTION_TIMEOUT = 120  # seconds
-    MAX_SEQUENCE_LENGTH = 1000000  # 1MB in bp
+    PLASMIDFINDER_DB_PATH = os.environ.get(
+        'PLASMIDFINDER_DB_PATH',
+        os.path.expanduser('$HOME/app/db/plasmidfinder/database/')
+    )
     
     # Logging
-    LOG_LEVEL = 'INFO'
+    LOG_LEVEL = os.environ.get('LOG_LEVEL', 'DEBUG')  # Use DEBUG in Docker
     LOG_FILE = os.path.join(PROJECT_ROOT, 'logs', 'app.log')
 
 

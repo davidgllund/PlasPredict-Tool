@@ -19,6 +19,7 @@ from itertools import product
 import glob
 import subprocess
 import re
+from pathlib import Path
 
 # Import configuration
 from config import get_config
@@ -142,72 +143,67 @@ def annotate_conjugation_system(filepath, models):
     return conjugation_system
 
 
-def run_plasmidfinder(fasta_path, output_dir, db_path, executable="plasmidfinder.py"):
-    """Run plasmidfinder to identify plasmid incompatibility types"""
+def run_plasmidfinder(fasta_path, output_dir, db_path):
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    db_path = Path(db_path).expanduser().resolve()
-
     cmd = [
-        executable,
+        sys.executable, "-m", "plasmidfinder",
         "-i", str(fasta_path),
         "-o", str(output_dir),
-        "-p", str(db_path)
+        "-p", str(db_path),
+        "-x"
     ]
 
     result = subprocess.run(cmd, capture_output=True, text=True)
 
     if result.returncode != 0:
-        logger.warning(f"Plasmidfinder failed: {result.stderr}")
+        logger.warning(f"Plasmidfinder failed (returncode {result.returncode})")
+        logger.warning(f"Plasmidfinder stderr: {result.stderr}")
+        return None
+ 
+    stdout = result.stdout
+    json_start = stdout.find('{')
+    if json_start == -1:
+        logger.warning("No JSON found in plasmidfinder stdout")
         return None
 
-    return output_dir
+    try:
+        data = json.loads(stdout[json_start:])
+        json_path = output_dir / "data.json"
+        json_path.write_text(json.dumps(data))
+        logger.info("Plasmidfinder completed successfully")
+        return output_dir
+    except json.JSONDecodeError as e:
+        logger.warning(f"Could not parse plasmidfinder JSON output: {e}")
+        return None
 
 
 def parse_plasmidfinder_json(json_path):
-    """Parse plasmidfinder JSON output to extract incompatibility types"""
+    """Parse plasmidfinder v3 JSON output to extract incompatibility types"""
     try:
         with open(json_path) as f:
             data = json.load(f)
 
-        root = data["plasmidfinder"]["results"]
         rows = []
- 
-        for category, subdict in root.items():
-            if not isinstance(subdict, dict):
+        for key, region in data.get("seq_regions", {}).items():
+            if not isinstance(region, dict):
                 continue
- 
-            for subgroup, hits in subdict.items():
-                if hits == "No hit found":
-                    continue
- 
-                if not isinstance(hits, dict):
-                    continue 
-
-                for hit_id, hit in hits.items():
-                    if not isinstance(hit, dict):
-                        continue
-
-                    rows.append({
-                        "category": category,
-                        "subgroup": subgroup,
-                        "plasmid": hit.get("plasmid"),
-                        "identity": hit.get("identity"),
-                        "coverage": hit.get("coverage"),
-                        "contig": hit.get("contig_name"),
-                        "positions_in_contig": hit.get("positions_in_contig"),
-                        "reference_accession": hit.get("accession"),
-                        "template_length": hit.get("template_length"),
-                        "hsp_length": hit.get("HSP_length"),
-                        "note": hit.get("note"),
-                        "hit_id": hit.get("hit_id")
-                    })
+            rows.append({
+                "plasmid":    region.get("name"),
+                "identity":   region.get("identity"),
+                "coverage":   region.get("coverage"),
+                "contig":     region.get("query_id"),
+                "reference_accession": region.get("ref_acc"),
+                "note":       region.get("note"),
+            })
 
         return pd.DataFrame(rows)
+
     except Exception as e:
         logger.warning(f"Could not parse plasmidfinder output: {e}")
         return pd.DataFrame()
+    
 
 
 def run_rgi(fasta_path, output_prefix, executable="rgi"):
