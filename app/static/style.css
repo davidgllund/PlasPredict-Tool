@@ -6,16 +6,18 @@
 }
 
 :root {
-    --primary-color: #24586e;
-    --primary-dark: #1a3d52;
-    --primary-light: #d4e6f1;
+    /* Color adaptation based on the PlasPredict layout */
+    --primary-color: #a4c8e6;       /* Soft light blue for primary actions/accents */
+    --primary-dark: #8cb4d6;        /* Deeper accent blue for hovers */
+    --primary-light: #d0e2f0;       /* Highlight background fills */
+    --header-bg: #004080;           /* Deep navy blue for the page background/accents */
     --success-color: #27ae60;
     --error-color: #e74c3c;
     --warning-color: #f39c12;
-    --text-dark: #1f2937;
-    --text-light: #6b7280;
-    --border-color: #e5e7eb;
-    --bg-light: #f9fafb;
+    --text-dark: #111111;           /* Crisp dark text */
+    --text-light: #555555;          /* Muted body text */
+    --border-color: #cccccc;        /* Neutral form borders */
+    --bg-light: #f4f7f9;            /* Page background tint from the image */
     --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
@@ -26,7 +28,8 @@ body {
         sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background: linear-gradient(135deg, #47637b 0%, #29363e 100%);
+    /* Kept your original gradient format, adapted to PlasPredict colors */
+    background: linear-gradient(135deg, var(--header-bg) 0%, #002855 100%);
     color: var(--text-dark);
     min-height: 100vh;
 }
@@ -106,6 +109,7 @@ main {
     cursor: pointer;
     width: 18px;
     height: 18px;
+    accent-color: var(--header-bg);
 }
 
 /* Input Divs */
@@ -133,7 +137,7 @@ textarea {
 
 textarea:focus {
     outline: none;
-    border-color: var(--primary-color);
+    border-color: var(--header-bg);
     box-shadow: 0 0 0 3px var(--primary-light);
 }
 
@@ -148,8 +152,8 @@ input[type="file"] {
 
 input[type="file"]::file-selector-button {
     background-color: var(--primary-color);
-    color: white;
-    border: none;
+    color: var(--text-dark);
+    border: 1px solid var(--primary-dark);
     padding: 8px 16px;
     border-radius: 4px;
     cursor: pointer;
@@ -198,7 +202,7 @@ select {
 
 select:focus {
     outline: none;
-    border-color: var(--primary-color);
+    border-color: var(--header-bg);
     box-shadow: 0 0 0 3px var(--primary-light);
 }
 
@@ -214,10 +218,10 @@ select[multiple] option {
 
 select[multiple] option:checked {
     background: linear-gradient(
-        var(--primary-color),
-        var(--primary-color)
+        var(--header-bg),
+        var(--header-bg)
     );
-    background-color: var(--primary-color) !important;
+    background-color: var(--header-bg) !important;
     color: white;
 }
 
@@ -252,31 +256,34 @@ select[multiple] option:checked {
     cursor: pointer;
     width: 18px;
     height: 18px;
-    accent-color: var(--primary-color);
+    accent-color: var(--header-bg);
 }
 
-.checkbox-group input[type="checkbox"]:checked + {
-    color: var(--primary-dark);
+.checkbox-group input[type="checkbox"]:checked + span {
+    color: var(--header-bg);
+    font-weight: bold;
 }
 
 /* Buttons */
 .btn-submit {
     width: 100%;
     padding: 14px 24px;
-    background: linear-gradient(135deg, var(--primary-color), var(--primary-color));
-    color: white;
-    border: none;
+    /* Clean gradient style using the new color scheme */
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: var(--text-dark);
+    border: 1px solid var(--primary-dark);
     border-radius: 6px;
     font-size: 1.1rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s;
-    box-shadow: 0 4px 6px rgba(37, 99, 235, 0.3);
+    box-shadow: 0 4px 6px rgba(0, 64, 128, 0.15);
 }
 
 .btn-submit:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(37, 99, 235, 0.4);
+    box-shadow: 0 6px 12px rgba(0, 64, 128, 0.25);
+    background: var(--primary-dark);
 }
 
 .btn-submit:active:not(:disabled) {
@@ -297,9 +304,9 @@ select[multiple] option:checked {
 
 .btn-new-prediction {
     background-color: var(--primary-color);
-    color: white;
+    color: var(--text-dark);
+    border: 1px solid var(--primary-dark);
     padding: 12px 24px;
-    border: none;
     border-radius: 6px;
     font-weight: 600;
     cursor: pointer;
@@ -334,7 +341,7 @@ select[multiple] option:checked {
 
 .spinner {
     border: 4px solid var(--border-color);
-    border-top-color: var(--primary-color);
+    border-top-color: var(--header-bg);
     border-radius: 50%;
     width: 40px;
     height: 40px;
@@ -378,7 +385,7 @@ select[multiple] option:checked {
     padding: 20px;
     border-radius: 8px;
     box-shadow: var(--shadow);
-    border-left: 4px solid var(--primary-color);
+    border-left: 4px solid var(--header-bg);
 }
 
 .result-card h3 {
@@ -410,7 +417,7 @@ select[multiple] option:checked {
 .conj-badge {
     display: inline-block;
     background-color: var(--primary-light);
-    color: var(--primary-dark);
+    color: var(--header-bg);
     padding: 6px 12px;
     border-radius: 20px;
     font-size: 0.85rem;
@@ -436,7 +443,7 @@ select[multiple] option:checked {
 .feature-category strong {
     display: block;
     margin-bottom: 8px;
-    color: var(--primary-dark);
+    color: var(--header-bg);
     font-size: 0.95rem;
 }
 
@@ -445,13 +452,13 @@ select[multiple] option:checked {
     margin-bottom: 12px;
     padding: 10px;
     background-color: #f8f9fa;
-    border-left: 4px solid var(--primary-color);
+    border-left: 4px solid var(--header-bg);
     border-radius: 4px;
     line-height: 1.6;
 }
 
 .identified-element strong {
-    color: var(--primary-dark);
+    color: var(--header-bg);
     font-weight: 600;
 }
 
@@ -507,7 +514,7 @@ select[multiple] option:checked {
 }
 
 .prediction-fill {
-    background: linear-gradient(90deg, var(--primary-color), var(--primary-dark));
+    background: linear-gradient(90deg, var(--header-bg), #002855);
     height: 100%;
     display: flex;
     align-items: center;
