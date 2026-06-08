@@ -39,7 +39,7 @@ class Config:
     
     PLASMIDFINDER_DB_PATH = os.environ.get(
         'PLASMIDFINDER_DB_PATH',
-        os.path.expanduser('$HOME/app/db/plasmidfinder/database/')
+        str(Path.home() / 'app/db/plasmidfinder/database')
     )
     
     # Logging
