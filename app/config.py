@@ -27,14 +27,9 @@ class Config:
     UPLOAD_FOLDER = os.path.join(PROJECT_ROOT, 'uploads')
     ALLOWED_EXTENSIONS = {'fna', 'fasta', 'fa', 'txt'}
     
-    # Model paths - support both development and container environments
     MODEL_PATH = os.environ.get(
         'MODEL_PATH',
-        PROJECT_ROOT / 'models' / 'plaspredict_model.pkl'
-    )
-    HMM_PATH = os.environ.get(
-        'HMM_PATH',
-        PROJECT_ROOT / 'models' / 'conjscan_models'
+        PROJECT_ROOT / 'models' / 'plaspart_model.pkl'
     )
     
     PLASMIDFINDER_DB_PATH = os.environ.get(
