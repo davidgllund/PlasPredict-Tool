@@ -112,27 +112,14 @@ def annotate_conjugation_system(filepath, models):
             
             logger.info(f"Prodigal succeeded, proteins written to {proteins}")
             logger.info(f"Proteins file exists: {proteins.exists()}")
-            
-            for hmm in models:
-                logger.debug(f"Searching HMM: {hmm}")
-                hits = subprocess.run(
-                    f'hmmsearch -E 0.0000000001 "{hmm}" "{proteins}"',
-                    shell=True,
-                    capture_output=True,
-                    text=True
+
+            subprocess.run(
+                f'macsyfinder --db-type ordered_replicon --sequence-db "{proteins}" --models CONJScan/Plasmids all --out-dir "{tmp}"/conjscan_results',
+                shell=True
                 )
-                
-                if hits.returncode == 0:
-                    if "[No hits detected that satisfy reporting thresholds]" not in hits.stdout:
-                        element = hmm.split('/')[-1].split('.')[0].split('_')[0]
-                        logger.info(f"Found HMM hit: {element} from {hmm}")
-                        if element not in conjugation_system:
-                            conjugation_system.append(element)
-                    else:
-                        logger.debug(f"No hits in {hmm}")
-                else:
-                    logger.warning(f"hmmsearch failed on {hmm}: return code {hits.returncode}")
-                    logger.warning(f"hmmsearch stderr: {hits.stderr}")
+            
+            conjscan_df = pd.read_csv(f'"{tmp}"/conjscan_results/best_solution.tsv', sep='\t', comment='#')
+            conjugation_system = list(set([x.split('_')[1] for x in conjscan_df['gene_name']]))
         
         except Exception as e:
             logger.error(f"Exception in conjugation annotation: {e}")

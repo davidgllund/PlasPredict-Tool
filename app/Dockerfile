@@ -26,6 +26,9 @@ COPY app/requirements.txt /build/
 # Install any other Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Install CONJScan models
+RUN msf_data install CONJScan
+
 # Create a dedicated staging directory for the database in builder
 RUN mkdir -p /build/plasmidfinder_db
 
