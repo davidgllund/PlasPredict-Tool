@@ -100,12 +100,31 @@ def annotate_conjugation_system(filepath):
             logger.info(f"Prodigal succeeded, proteins written to {proteins}")
             logger.info(f"Proteins file exists: {proteins.exists()}")
 
-            subprocess.run(
-                f'macsyfinder --db-type ordered_replicon --sequence-db "{proteins}" --models CONJScan/Plasmids all --out-dir "{tmp}"/conjscan_results',
-                shell=True
-                )
+            outdir = tmp / "conjscan_results"
+            tsv_path = outdir / "best_solution.tsv"
+
+            cmd = [
+                "macsyfinder",
+                "--db-type", "ordered_replicon",
+                "--sequence-db", str(proteins),
+                "--models", "CONJScan/Plasmids",
+                "all",
+                "--out-dir", str(outdir)
+            ]
+
+            result = subprocess.run(cmd, capture_output=True, text=True)
+
+            if result.returncode != 0:
+                logger.error("MacSyFinder failed")
+                logger.error(result.stderr)
+                logger.error(result.stdout)
+                return []
             
-            conjscan_df = pd.read_csv(f'"{tmp}"/conjscan_results/best_solution.tsv', sep='\t', comment='#')
+            if not tsv_path.exists():
+                logger.error(f"MacSyFinder output missing: {tsv_path}")
+                return []
+            
+            conjscan_df = pd.read_csv(tsv_path, sep="\t", comment="#")
             conjugation_system = list(set([x.split('_')[1] for x in conjscan_df['gene_name']]))
         
         except Exception as e:
