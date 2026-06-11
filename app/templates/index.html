@@ -50,14 +50,13 @@
 
                 <!-- Feature Selection Sections -->
                 <section class="form-section">
-                    <h2>2. Isolation Source (Optional)</h2>
+                    <h2>2. Isolation Source</h2>
                     <p style="font-size: 0.95em; color: #666; margin-bottom: 1rem;">
-                        Plasmid features (incompatibility types, antibiotic resistance, and conjugation systems) are automatically detected from your sequence. Optionally, specify the isolation source to improve host range predictions.
+                        Enter the type of environment from which your plasmid was isolated (optional).
                     </p>
 
                     <!-- Isolation Sources -->
                     <div class="feature-group">
-                        <label>Isolation Source:</label>
                         <div class="checkbox-group">
                             <label><input type="checkbox" name="isolation_source" value="Aquatic animal"> Aquatic animal</label>
                             <label><input type="checkbox" name="isolation_source" value="Clinical"> Clinical</label>
@@ -123,10 +122,10 @@
                     <div class="result-card info-card">
                         <h3>Host Range Categories</h3>
                         <ul>
-                            <li><strong>≤ Species:</strong> Plasmid restricted to specific species</li>
-                            <li><strong>Genus/Family:</strong> Plasmid spans genus or family level</li>
-                            <li><strong>Order/Class:</strong> Plasmid spans order or class level</li>
-                            <li><strong>≥ Phylum:</strong> Plasmid can proliferate across phyla</li>
+                            <li><strong>≤ Species:</strong> Plasmid unlikely to proliferate beyond a single bacterial genus</li>
+                            <li><strong>Genus/Family:</strong> Plasmid likely restricted to one bacterial family or order</li>
+                            <li><strong>Order/Class:</strong> Plasmid likely restricted to one bacterial class or phylum</li>
+                            <li><strong>≥ Phylum:</strong> Plasmid likely to proliferate across bacterial phyla</li>
                         </ul>
                     </div>
                 </div>

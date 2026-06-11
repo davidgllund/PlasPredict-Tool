@@ -21,41 +21,29 @@ import subprocess
 import re
 from pathlib import Path
 
-# Import configuration
 from config import get_config
 
-# Create Flask app
 app = Flask(__name__)
 
-# Load configuration based on environment
 env = os.environ.get('FLASK_ENV', 'development')
 config = get_config(env)
 app.config.from_object(config)
 
-# Setup logging
 logging.basicConfig(
     level=getattr(logging, config.LOG_LEVEL),
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
 
-# Get the project root directory
 PROJECT_ROOT = Path(__file__).parent
 
-# Create uploads directory if it doesn't exist
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-# Load model
 logger.info(f"Loading model from {app.config['MODEL_PATH']}")
 if not Path(app.config['MODEL_PATH']).exists():
     raise FileNotFoundError(f"Model not found at {app.config['MODEL_PATH']}")
 model = joblib.load(str(app.config['MODEL_PATH']))
 logger.info("Model loaded successfully")
-
-# HMM models for conjugation
-HMM_PATH = app.config['HMM_PATH']
-logger.info(f"HMM models path: {HMM_PATH}")
-
 
 def generate_possible_kmers(k):
     """Generate all possible k-mers of length k"""
@@ -87,10 +75,9 @@ def calc_kmer_distributions(genome, k, possible_kmers):
     return distribution
 
 
-def annotate_conjugation_system(filepath, models):
-    """Identify conjugation systems in plasmid using HMM models"""
-    conjugation_system = []
-    logger.info(f"Starting conjugation annotation with {len(models)} HMM models")
+def annotate_conjugation_system(filepath):
+    """Identify conjugation systems in plasmid using MacSyFinder CONJScan"""
+    conjugation_system = [] 
     
     with tempfile.TemporaryDirectory() as tmpdir:
         tmp = Path(tmpdir)
@@ -339,24 +326,18 @@ def predict_host_range(fasta_content, isolation_sources):
         first_seq_id = list(plasmid_sequence.keys())[0]
         df.loc[first_seq_id, 'size'] = len(plasmid_sequence[first_seq_id].seq)
         
-        # Create temporary FASTA for analysis tools
         with tempfile.NamedTemporaryFile(mode='w', suffix='.fna', delete=False) as f:
             for seq_id, seq_record in plasmid_sequence.items():
                 f.write(f">{seq_id}\n{str(seq_record.seq)}\n")
             temp_fasta = f.name
         
-        # Identify conjugation systems
-        hmm_files = glob.glob(str(HMM_PATH / '*'))
-        logger.info(f"Found {len(hmm_files)} HMM files")
-        if len(hmm_files) == 0:
-            logger.warning(f"No HMM files found in {HMM_PATH}")
-        conjugation_system = annotate_conjugation_system(temp_fasta, hmm_files)
+        conjugation_system = annotate_conjugation_system(temp_fasta)
+        conjugation_system_detected = [c if len(c) > 1 else f"MPF{c}" for c in conjugation_system]
         conjugation_system = list(set(conjugation_system) & set(df.columns))
         logger.info(f"Detected conjugation systems: {conjugation_system}")
         
-        # Identify Inc types using plasmidfinder
-        inc_types_detected = []  # Raw detected types (for reporting to user)
-        inc_types = []  # Filtered/cleaned types (for model input)
+        inc_types_detected = []
+        inc_types = []
         try:
             with tempfile.TemporaryDirectory() as plsmd_tmpdir:
                 plsmd_output = run_plasmidfinder(
@@ -369,9 +350,7 @@ def predict_host_range(fasta_content, isolation_sources):
                     if json_path.exists():
                         plasmidfinder_output = parse_plasmidfinder_json(str(json_path))
                         if not plasmidfinder_output.empty:
-                            # Keep raw detected types for user reporting
                             inc_types_detected = list(set(plasmidfinder_output['plasmid']))
-                            # Clean and filter for model input
                             inc_type_cleaned_temp = [re.sub(r"\([^)]*\)", "", item) for item in inc_types_detected]
                             inc_types = list(set(inc_type_cleaned_temp) & set(df.columns))
                             logger.info(f"Detected Inc types (raw): {inc_types_detected}")
@@ -379,7 +358,6 @@ def predict_host_range(fasta_content, isolation_sources):
         except Exception as e:
             logger.warning(f"Could not run plasmidfinder: {e}")
         
-        # Identify drug classes and resistance mechanisms using RGI
         drug_classes = []
         resistance_mechanisms = []
         args_detected = []
@@ -398,7 +376,6 @@ def predict_host_range(fasta_content, isolation_sources):
                         logger.info(f"RGI output shape: {rgi_output.shape}")
                         
                         if not rgi_output.empty:
-                            # Extract ARGs
                             arg_list = [
                                 arg.strip()
                                 for row in rgi_output["Best_Hit_ARO"].dropna().unique()
@@ -407,32 +384,27 @@ def predict_host_range(fasta_content, isolation_sources):
                             args_detected = list(set(arg_list))
                             logger.info(f"Detected antibiotic resistance genes: {args_detected}")
 
-                            # Extract drug classes
                             drug_class_list = [
                                 drug.strip()
                                 for row in rgi_output["Drug Class"].dropna().unique()
                                 for drug in row.split(";")
                             ] 
 
-                            # Filter for model
                             drug_classes = list(set(drug_class_list) & set(df.columns))
                             logger.info(f"Drug classes for model: {drug_classes}")
                             
-                            # Extract resistance mechanisms
                             resistance_mech_list = [
                                 mechanism.strip()
                                 for row in rgi_output["Resistance Mechanism"].dropna().unique()
                                 for mechanism in row.split(";")
                             ] 
 
-                            # Filter for model
                             resistance_mechanisms = list(set(resistance_mech_list) & set(df.columns))
                             logger.info(f"Resistance mechanisms for model: {resistance_mechanisms}")
                         else:
                             logger.info("RGI output was empty")
                     else:
                         logger.warning(f"RGI output file not found at {rgi_txt}")
-                        # List directory contents for debugging
                         logger.debug(f"Contents of {Path(rgi_txt).parent}: {list(Path(rgi_txt).parent.iterdir())}")
                 else:
                     logger.warning("RGI did not return an output prefix")
@@ -441,13 +413,10 @@ def predict_host_range(fasta_content, isolation_sources):
             import traceback
             logger.error(traceback.format_exc())
         
-        # Clean temporary FASTA
         os.unlink(temp_fasta)
         
-        # Clean inc types (remove parentheses) for model input - use the already-filtered 'inc_types' list
         inc_type_cleaned = [re.sub(r"\([^)]*\)", "", item) for item in inc_types]
         
-        # Compile all features for model (using filtered/cleaned versions)
         all_features_for_model = (
             drug_classes +
             resistance_mechanisms +
@@ -470,7 +439,7 @@ def predict_host_range(fasta_content, isolation_sources):
             'sequence_id': first_seq_id,
             'sequence_length': len(plasmid_sequence[first_seq_id].seq),
             'detected_features': {
-                'conjugation_systems': conjugation_system,
+                'conjugation_systems': conjugation_system_detected,
                 'inc_types': inc_types_detected,
                 'antibiotic_resistance_genes': args_detected
             },
@@ -503,13 +472,11 @@ def index():
 def api_predict():
     """API endpoint for predictions"""
     try:
-        # Parse request
         seq_input = request.form.get('sequence_input', '').strip()
         seq_source = request.form.get('sequence_source', 'text')
         
         isolation_sources = request.form.getlist('isolation_source')
         
-        # Get sequence
         if seq_source == 'file':
             if 'sequence_file' not in request.files:
                 return jsonify({'error': 'No file provided', 'success': False}), 400
@@ -529,7 +496,7 @@ def api_predict():
             file.save(filepath)
             fasta_content = filepath
         
-        else:  # text input
+        else:
             if not seq_input:
                 return jsonify({
                     'error': 'Please provide a sequence',
@@ -537,7 +504,6 @@ def api_predict():
                 }), 400
             fasta_content = seq_input
         
-        # Validate isolation source (now optional, but max 1)
         if len(isolation_sources) > 1:
             return jsonify({
                 'error': 'Please select only one isolation source',
@@ -564,11 +530,6 @@ def api_predict():
 
 @app.route('/api/metadata', methods=['GET'])
 def api_metadata():
-    """Get available options for dropdowns"""
-    # Note: Inc types, drug classes, and resistance mechanisms are now
-    # automatically detected from the sequence. These lists are kept for
-    # reference purposes only and are no longer used in the API.
-    
     return jsonify({
         'isolation_sources': [
             'Aquatic animal',
