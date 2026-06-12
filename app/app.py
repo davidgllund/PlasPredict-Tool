@@ -65,6 +65,25 @@ def get_kmer_distribution(kmers, possible_kmers):
     return kmer_frequencies
 
 
+def get_canonical_kmers(df):
+    comp = str.maketrans("ACGT", "TGCA")
+
+    def revcomp(seq):
+        return seq.translate(comp)[::-1]
+
+    canonical_map = {}
+    for kmer in df.columns:
+        rc = revcomp(kmer)
+        canonical = min(kmer, rc)
+        canonical_map.setdefault(canonical, []).append(kmer)
+
+    canonical_df = pd.DataFrame(index=df.index)
+    for canon, kmers in canonical_map.items():
+        canonical_df[canon] = df[kmers].sum(axis=1)
+
+    return canonical_df
+
+
 def calc_kmer_distributions(genome, k, possible_kmers):
     """Calculate k-mer distribution for entire genome"""
     genome_kmers = []
@@ -333,6 +352,7 @@ def predict_host_range(fasta_content, isolation_sources):
         
         all_kmers = generate_possible_kmers(3)
         kmer_distributions = calc_kmer_distributions(plasmid_sequence, 3, all_kmers)
+        kmer_distributions = get_canonical_kmers(kmer_distributions)
         kmer_df = pd.DataFrame(
             [kmer_distributions],
             index=plasmid_sequence.keys(),
