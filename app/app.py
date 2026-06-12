@@ -358,9 +358,8 @@ def predict_host_range(fasta_content, isolation_sources):
             columns=all_kmers
         )
         kmer_df = get_canonical_kmers(kmer_df)
-        
         kmer_cols = list(set(kmer_df.columns) & set(df.columns))
-        df[kmer_cols] = kmer_df[kmer_cols]
+        df[kmer_cols] = kmer_df[kmer_cols].round(3)
         
         first_seq_id = list(plasmid_sequence.keys())[0]
         df.loc[first_seq_id, 'size'] = len(plasmid_sequence[first_seq_id].seq)
