@@ -65,6 +65,16 @@ def get_kmer_distribution(kmers, possible_kmers):
     return kmer_frequencies
 
 
+def calc_kmer_distributions(genome, k, possible_kmers):
+    """Calculate k-mer distribution for entire genome"""
+    genome_kmers = []
+    for seq_entry in genome.values():
+        genome_kmers.extend(get_kmers(seq_entry.seq, k))
+    
+    distribution = get_kmer_distribution(genome_kmers, possible_kmers)
+    return distribution
+
+
 def get_canonical_kmers(df):
     comp = str.maketrans("ACGT", "TGCA")
 
@@ -82,16 +92,6 @@ def get_canonical_kmers(df):
         canonical_df[canon] = df[kmers].sum(axis=1)
 
     return canonical_df
-
-
-def calc_kmer_distributions(genome, k, possible_kmers):
-    """Calculate k-mer distribution for entire genome"""
-    genome_kmers = []
-    for seq_entry in genome.values():
-        genome_kmers.extend(get_kmers(seq_entry.seq, k))
-    
-    distribution = get_kmer_distribution(genome_kmers, possible_kmers)
-    return distribution
 
 
 def annotate_conjugation_system(filepath):
@@ -352,12 +352,12 @@ def predict_host_range(fasta_content, isolation_sources):
         
         all_kmers = generate_possible_kmers(3)
         kmer_distributions = calc_kmer_distributions(plasmid_sequence, 3, all_kmers)
-        kmer_distributions = get_canonical_kmers(kmer_distributions)
         kmer_df = pd.DataFrame(
             [kmer_distributions],
             index=plasmid_sequence.keys(),
             columns=all_kmers
         )
+        kmer_df = get_canonical_kmers(kmer_df)
         
         kmer_cols = list(set(kmer_df.columns) & set(df.columns))
         df[kmer_cols] = kmer_df[kmer_cols]
