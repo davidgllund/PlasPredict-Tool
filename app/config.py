@@ -1,5 +1,5 @@
 """
-Configuration for Plasmid Host Range Predictor Web Application
+Configuration for Plasmid Bacterial Taxonomic Partiationing Web Application
 """
 import os
 from pathlib import Path
@@ -29,7 +29,7 @@ class Config:
     
     MODEL_PATH = os.environ.get(
         'MODEL_PATH',
-        PROJECT_ROOT / 'models' / 'plaspart_model.pkl'
+        PROJECT_ROOT / 'models' / 'plaspredict_model.pkl'
     )
     
     PLASMIDFINDER_DB_PATH = os.environ.get(
