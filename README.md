@@ -2,7 +2,7 @@
 
 A Flask web application for predicting the host range of plasmids from their DNA sequences. Given a plasmid FASTA file, the tool runs a bioinformatics pipeline to extract biological features and uses a machine learning model to classify the plasmid's likely host range.
 
-The web application is hosted at: https://plaspart.serve.scilifelab.se/
+The web application is hosted at: https://plaspredict-tool.serve.scilifelab.se/
 
 ---
 
